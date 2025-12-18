@@ -111,6 +111,61 @@ private String gpSurgeryID;
         this.gpSurgeryID = gpSurgeryID;
     }
 
+
+    public String toCSV() {
+        // Order must match the header of patients.csv:
+        // patient_id,first_name,last_name,date_of_birth,nhs_number,gender,phone_number,email,address,postcode,
+        // emergency_contact_name,emergency_contact_phone,registration_date,gp_surgery_id
+
+        return String.join(",",
+                patientID,
+                escapeCsv(getFirstName()),
+                escapeCsv(getLastName()),
+                dateOfBirth.toString(),
+                nhsNumber,
+                gender,
+                escapeCsv(getPhoneNumber()),
+                escapeCsv(getEmail()),
+                escapeCsv(address),
+                escapeCsv(postcode),
+                escapeCsv(emergencyContactName),
+                escapeCsv(emergencyContactPhone),
+                registerDate.toString(),
+                gpSurgeryID
+        );
+    }
+
+    public static Patient fromCSV(String csvLine) {
+        String[] c = CSVHandler.parseCsvLine(csvLine);
+        if (c.length != 14) {
+            throw new IllegalArgumentException("Invalid patient CSV row (expected 14 columns, got " + c.length + "): " + csvLine);
+        }
+
+        return new Patient(
+                c[1],                        // firstName
+                c[2],                        // lastName
+                c[6],                        // phoneNumber
+                c[7],                        // email
+                c[0],                        // patientID
+                LocalDate.parse(c[3]),       // dateOfBirth
+                c[4],                        // nhsNumber
+                c[5],                        // gender
+                c[8],                        // address
+                c[9],                        // postcode
+                c[10],                       // emergencyContactName
+                c[11],                       // emergencyContactPhone
+                LocalDate.parse(c[12]),      // registerDate
+                c[13]                        // gpSurgeryID
+        );
+    }
+
+    private static String escapeCsv(String value) {
+        if (value == null) return "";
+        boolean needsQuotes = value.contains(",") || value.contains("\"") || value.contains("\n") || value.contains("\r");
+        String v = value.replace("\"", "\"\"");
+        return needsQuotes ? "\"" + v + "\"" : v;
+    }
+
     @Override
     public String toString() {
         return "Patient{" +
