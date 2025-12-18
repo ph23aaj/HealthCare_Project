@@ -1,23 +1,23 @@
-import java.time.LocalDate;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 
 public class Patient extends People {
 
 private String patientID;
-private LocalDate dateOfBirth;
+private Date dateOfBirth;
 private String nhsNumber;
 private String gender;
 private String address;
 private String postcode;
 private String emergencyContactName;
 private String emergencyContactPhone;
-private LocalDate registerDate;
+private Date registerDate;
 private String gpSurgeryID;
 
-    public Patient(String firstName, String lastName, String phoneNumber, String email,
-                   String patientID, LocalDate dateOfBirth, String nhsNumber, String gender,
+    public Patient(String patientID, String firstName, String lastName, Date dateOfBirth,
+                   String nhsNumber, String gender, String phoneNumber, String email,
                    String address, String postcode, String emergencyContactName,
-                   String emergencyContactPhone, LocalDate registerDate, String gpSurgeryID) {
+                   String emergencyContactPhone, Date registerDate, String gpSurgeryID) {
         super(firstName, lastName, phoneNumber, email);
         this.patientID = patientID;
         this.dateOfBirth = dateOfBirth;
@@ -39,11 +39,11 @@ private String gpSurgeryID;
         this.patientID = patientID;
     }
 
-    public LocalDate getDateOfBirth() {
+    public Date getDateOfBirth() {
         return dateOfBirth;
     }
 
-    public void setDateOfBirth(LocalDate dateOfBirth) {
+    public void setDateOfBirth(Date dateOfBirth) {
         this.dateOfBirth = dateOfBirth;
     }
 
@@ -95,11 +95,11 @@ private String gpSurgeryID;
         this.emergencyContactPhone = emergencyContactPhone;
     }
 
-    public LocalDate getRegisterDate() {
+    public Date getRegisterDate() {
         return registerDate;
     }
 
-    public void setRegisterDate(LocalDate registerDate) {
+    public void setRegisterDate(Date registerDate) {
         this.registerDate = registerDate;
     }
 
@@ -111,17 +111,14 @@ private String gpSurgeryID;
         this.gpSurgeryID = gpSurgeryID;
     }
 
-
     public String toCSV() {
-        // Order must match the header of patients.csv:
-        // patient_id,first_name,last_name,date_of_birth,nhs_number,gender,phone_number,email,address,postcode,
-        // emergency_contact_name,emergency_contact_phone,registration_date,gp_surgery_id
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
 
         return String.join(",",
                 patientID,
                 escapeCsv(getFirstName()),
                 escapeCsv(getLastName()),
-                dateOfBirth.toString(),
+                sdf.format(dateOfBirth),
                 nhsNumber,
                 gender,
                 escapeCsv(getPhoneNumber()),
@@ -130,40 +127,60 @@ private String gpSurgeryID;
                 escapeCsv(postcode),
                 escapeCsv(emergencyContactName),
                 escapeCsv(emergencyContactPhone),
-                registerDate.toString(),
+                sdf.format(registerDate),
                 gpSurgeryID
         );
     }
 
     public static Patient fromCSV(String csvLine) {
-        String[] c = CSVHandler.parseCsvLine(csvLine);
-        if (c.length != 14) {
-            throw new IllegalArgumentException("Invalid patient CSV row (expected 14 columns, got " + c.length + "): " + csvLine);
-        }
+        try {
+            String[] c = CSVHandler.parseCsvLine(csvLine);
 
-        return new Patient(
-                c[1],                        // firstName
-                c[2],                        // lastName
-                c[6],                        // phoneNumber
-                c[7],                        // email
-                c[0],                        // patientID
-                LocalDate.parse(c[3]),       // dateOfBirth
-                c[4],                        // nhsNumber
-                c[5],                        // gender
-                c[8],                        // address
-                c[9],                        // postcode
-                c[10],                       // emergencyContactName
-                c[11],                       // emergencyContactPhone
-                LocalDate.parse(c[12]),      // registerDate
-                c[13]                        // gpSurgeryID
-        );
+            if (c.length != 14) {
+                throw new IllegalArgumentException("Invalid patient row: expected 14 columns, got " + c.length);
+            }
+
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+            Date dob = sdf.parse(c[3]);
+            Date reg = sdf.parse(c[12]);
+
+            return new Patient(
+                    c[0],  // patientID
+                    c[1],  // firstName
+                    c[2],  // lastName
+                    dob,
+                    c[4],  // nhsNumber
+                    c[5],  // gender
+                    c[6],  // phoneNumber
+                    c[7],  // email
+                    c[8],  // address
+                    c[9],  // postcode
+                    c[10], // emergencyContactName
+                    c[11], // emergencyContactPhone
+                    reg,
+                    c[13]  // gpSurgeryID
+            );
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Failed to parse patient CSV line: " + csvLine, e);
+        }
     }
 
+
+
     private static String escapeCsv(String value) {
-        if (value == null) return "";
-        boolean needsQuotes = value.contains(",") || value.contains("\"") || value.contains("\n") || value.contains("\r");
-        String v = value.replace("\"", "\"\"");
-        return needsQuotes ? "\"" + v + "\"" : v;
+        if (value == null) {
+            return "";
+        }
+        boolean needsQuotes = value.contains(",");
+        // Escape any double quotes inside the value
+        String escapedValue = value.replace("\"", "\"\"");
+
+        // Wrap in quotes only if required
+        if (needsQuotes) {
+            return "\"" + escapedValue + "\"";
+        } else {
+            return escapedValue;
+        }
     }
 
     @Override
