@@ -1,21 +1,24 @@
+import java.time.LocalDate;
 import java.util.Date;
 
-public class Patient {
+public class Patient extends People {
 
 private String patientID;
-private String dateOfBirth;
+private LocalDate dateOfBirth;
 private String nhsNumber;
 private String gender;
 private String address;
 private String postcode;
 private String emergencyContactName;
 private String emergencyContactPhone;
-private Date registerDate;
+private LocalDate registerDate;
 private String gpSurgeryID;
 
-    public Patient(String patientID, String dateOfBirth, String nhsNumber, String gender,
+    public Patient(String firstName, String lastName, String phoneNumber, String email,
+                   String patientID, LocalDate dateOfBirth, String nhsNumber, String gender,
                    String address, String postcode, String emergencyContactName,
-                   String emergencyContactPhone, Date registerDate, String gpSurgeryID) {
+                   String emergencyContactPhone, LocalDate registerDate, String gpSurgeryID) {
+        super(firstName, lastName, phoneNumber, email);
         this.patientID = patientID;
         this.dateOfBirth = dateOfBirth;
         this.nhsNumber = nhsNumber;
@@ -36,11 +39,11 @@ private String gpSurgeryID;
         this.patientID = patientID;
     }
 
-    public String getDateOfBirth() {
+    public LocalDate getDateOfBirth() {
         return dateOfBirth;
     }
 
-    public void setDateOfBirth(String dateOfBirth) {
+    public void setDateOfBirth(LocalDate dateOfBirth) {
         this.dateOfBirth = dateOfBirth;
     }
 
@@ -92,11 +95,11 @@ private String gpSurgeryID;
         this.emergencyContactPhone = emergencyContactPhone;
     }
 
-    public Date getRegisterDate() {
+    public LocalDate getRegisterDate() {
         return registerDate;
     }
 
-    public void setRegisterDate(Date registerDate) {
+    public void setRegisterDate(LocalDate registerDate) {
         this.registerDate = registerDate;
     }
 
