@@ -1,9 +1,9 @@
-public enum AppointmentStaus {
+public enum AppointmentStatus {
 
     SCHEDULED(" Scheduled"), CANCELLED(" Cancelled");
     private String staus;
 
-    AppointmentStaus(String staus) {
+    AppointmentStatus(String staus) {
         this.staus = staus;
     }
 
