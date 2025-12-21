@@ -1,16 +1,24 @@
 public enum AppointmentStatus {
 
-    SCHEDULED(" Scheduled"), CANCELLED(" Cancelled");
-    private String staus;
+    SCHEDULED("Scheduled"), CANCELLED("Cancelled");
+    private String status;
 
-    AppointmentStatus(String staus) {
-        this.staus = staus;
+    AppointmentStatus(String status) {
+
+        this.status = status;
+    }
+
+    public static AppointmentStatus fromString(String text) {
+        for (AppointmentStatus label : AppointmentStatus.values()) {
+            if (label.status.equalsIgnoreCase(text.trim())) {
+                return label;
+            }
+        }
+        throw new IllegalArgumentException("Unknown AppointmentType: " + text);
     }
 
     @Override
     public String toString() {
-        return "AppointmentStaus{" +
-                "staus='" + staus + '\'' +
-                '}';
+        return status;
     }
 }

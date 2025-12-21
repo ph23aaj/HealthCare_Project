@@ -41,6 +41,30 @@ public class Appointment {
         return appointmentID;
     }
 
+    public String getPatientID() {
+        return patientID;
+    }
+
+    public void setPatientID(String patientID) {
+        this.patientID = patientID;
+    }
+
+    public String getClinicianID() {
+        return clinicianID;
+    }
+
+    public void setClinicianID(String clinicianID) {
+        this.clinicianID = clinicianID;
+    }
+
+    public String getFacilityID() {
+        return facilityID;
+    }
+
+    public void setFacilityID(String facilityID) {
+        this.facilityID = facilityID;
+    }
+
     public void setAppointmentID(String appointmentID) {
         this.appointmentID = appointmentID;
     }
@@ -150,20 +174,13 @@ public class Appointment {
                 LocalDate.parse(c[4]),         // appointment_date
                 LocalTime.parse(c[5]),         // appointment_time
                 Integer.parseInt(c[6]),        // duration_minutes
-                AppointmentType.valueOf(normaliseEnum(c[7])),
-                AppointmentStatus.valueOf(normaliseEnum(c[8])),
+                AppointmentType.fromString(c[7]),
+                AppointmentStatus.fromString(c[8]),
                 c[9],                          // reason_for_visit
                 c[10],                         // notes
                 LocalDate.parse(c[11]),        // created_date
                 LocalDate.parse(c[12])         // last_modified
         );
-    }
-
-    // Some CSV enum values contain spaces like "Routine Consultation"
-    // Your enum likely uses ROUTINE_CONSULTATION (underscore).
-    // This normalises "Routine Consultation" -> "ROUTINE_CONSULTATION"
-    private static String normaliseEnum(String value) {
-        return value.trim().toUpperCase().replace(" ", "_");
     }
 
     private static String escapeCsv(String value) {
