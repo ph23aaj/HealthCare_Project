@@ -5,8 +5,8 @@ public enum AppointmentType {
     EMERGENCY(" Emergency"), HEALTHCHECK(" Health Check");
     private String type;
 
-    private AppointmentType (String ty){
-        type = ty;
+    private AppointmentType (String type){
+        this.type = type;
     }
 
     @Override
