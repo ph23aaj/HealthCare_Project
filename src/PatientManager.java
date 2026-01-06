@@ -1,4 +1,6 @@
 import java.util.ArrayList;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 public class PatientManager {
 
@@ -44,6 +46,13 @@ public class PatientManager {
         return null;
     }
 
+    public Patient getPatientByID(String patientID) {
+        for (Patient p : patients) {
+            if (p.getPatientID().equals(patientID)) return p;
+        }
+        return null;
+    }
+
     public Patient findByNhsNumber(String nhsNumber) {
         for (Patient p : patients) {
             if (p.getNhsNumber().equals(nhsNumber)) {
@@ -53,16 +62,32 @@ public class PatientManager {
         return null;
     }
 
-    /** Adds a patient to memory only (saveAll() would persist it). */
     public void addPatient(Patient patient) {
         patients.add(patient);
+        saveAll();
+    }
+
+    private String generateNextPatientID() {
+        int max = 0;
+
+        for (Patient p : patients) {
+            String id = p.getPatientID(); // e.g. "P001"
+            if (id != null && id.startsWith("P")) {
+                try {
+                    int num = Integer.parseInt(id.substring(1));
+                    if (num > max) max = num;
+                } catch (NumberFormatException ignored) {}
+            }
+        }
+
+        return String.format("P%03d", max + 1);
     }
 
     /** Saves all patients back to the CSV file (overwrites file). */
     public void saveAll() {
         ArrayList<String> out = new ArrayList<>();
 
-        // Header (match your patients.csv header exactly)
+        // Header
         out.add("patient_id,first_name,last_name,date_of_birth,nhs_number,gender,phone_number,email,address,postcode,emergency_contact_name,emergency_contact_phone,registration_date,gp_surgery_id");
 
         for (Patient p : patients) {
@@ -71,4 +96,80 @@ public class PatientManager {
 
         CSVHandler.writeLines(filename, out);
     }
+
+    public void removePatient(String patientID) {
+        for (int i = 0; i < patients.size(); i++) {
+            if (patients.get(i).getPatientID().equals(patientID)) {
+                patients.remove(i);
+                saveAll();
+                return;
+            }
+        }
+        throw new IllegalArgumentException("No patient found with ID: " + patientID);
+    }
+
+    public void updatePatientDetails(String patientID, String firstName, String lastName,
+                                     String phone, String email, String address, String postcode,
+                                     String emergencyName, String emergencyPhone) {
+
+        Patient p = getPatientByID(patientID);
+        if (p == null) throw new IllegalArgumentException("No patient found with ID: " + patientID);
+
+        p.setFirstName(firstName);
+        p.setLastName(lastName);
+        p.setPhoneNumber(phone);
+        p.setEmail(email);
+        p.setAddress(address);
+        p.setPostcode(postcode);
+        p.setEmergencyContactName(emergencyName);
+        p.setEmergencyContactPhone(emergencyPhone);
+
+        saveAll();
+    }
+
+    public Patient createAndAddPatient(
+            String firstName, String lastName, String dobText, String nhsNumber, String gender,
+            String phone, String email, String address, String postcode,
+            String emergencyName, String emergencyPhone,
+            String gpSurgeryID
+    ) {
+        // Validate NHS uniqueness
+        if (findByNhsNumber(nhsNumber) != null) {
+            throw new IllegalArgumentException("A patient with this NHS number already exists.");
+        }
+
+        try {
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+            sdf.setLenient(false);
+
+            Date dob = sdf.parse(dobText.trim());
+            Date regDate = new Date(); // today
+
+            String newPatientID = generateNextPatientID();
+
+            Patient p = new Patient(
+                    newPatientID,
+                    firstName.trim(),
+                    lastName.trim(),
+                    dob,
+                    nhsNumber.trim(),
+                    gender.trim(),
+                    phone.trim(),
+                    email.trim(),
+                    address.trim(),
+                    postcode.trim(),
+                    emergencyName.trim(),
+                    emergencyPhone.trim(),
+                    regDate,
+                    gpSurgeryID.trim()
+            );
+
+            addPatient(p); // will saveAll if you updated it
+            return p;
+
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Invalid date of birth. Use YYYY-MM-DD.");
+        }
+    }
+
 }

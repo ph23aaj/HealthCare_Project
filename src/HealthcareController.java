@@ -10,6 +10,8 @@ public class HealthcareController {
         this.model = model;
     }
 
+    // ---------------------- Appointments --------------------------------
+
     public Appointment bookAppointment(String nhs, String dateText, String timeText,
                                        AppointmentType type, String reason, String notes) {
         LocalDate date = LocalDate.parse(dateText.trim());
@@ -53,6 +55,61 @@ public class HealthcareController {
         return model.getAppointmentManager().getAppointmentByID(appointmentID.trim());
     }
 
+// ------------------------- Patients ------------------------------------
+
+    public ArrayList<Patient> getAllPatients() {
+        return model.getPatientManager().getAllPatients();
+    }
+
+    public void reloadPatients() {
+        model.getPatientManager().load();
+    }
+
+    public Patient getPatientByID(String patientID) {
+        return model.getPatientManager().getPatientByID(patientID);
+    }
+
+    public void removePatient(String patientID) {
+        model.getPatientManager().removePatient(patientID);
+    }
+
+    public void updatePatientDetails(
+            String patientID,
+            String firstName,
+            String lastName,
+            String phone,
+            String email,
+            String address,
+            String postcode,
+            String emergencyName,
+            String emergencyPhone
+    ) {
+        model.getPatientManager().updatePatientDetails(
+                patientID,
+                firstName,
+                lastName,
+                phone,
+                email,
+                address,
+                postcode,
+                emergencyName,
+                emergencyPhone
+        );
+    }
+
+    public Patient addPatientFromForm(
+            String firstName, String lastName, String dobText, String nhsNumber, String gender,
+            String phone, String email, String address, String postcode,
+            String emergencyName, String emergencyPhone,
+            String gpSurgeryID
+    ) {
+        return model.getPatientManager().createAndAddPatient(
+                firstName, lastName, dobText, nhsNumber, gender,
+                phone, email, address, postcode,
+                emergencyName, emergencyPhone,
+                gpSurgeryID
+        );
+    }
 
 
 

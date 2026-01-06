@@ -17,6 +17,9 @@ public class HealthcareView extends JFrame {
     private JLabel statusLabel;
     private JTable appointmentsTable;
     private DefaultTableModel appointmentsTableModel;
+    private JTable patientsTable;
+    private javax.swing.table.DefaultTableModel patientsTableModel;
+
 
     public HealthcareView(HealthcareController controller) {
         this.controller = controller;
@@ -37,6 +40,12 @@ public class HealthcareView extends JFrame {
 
         statusLabel = new JLabel(" ");
         add(statusLabel, BorderLayout.SOUTH);
+
+        tabs.add("Patients", buildPatientsTab());
+        tabs.add("Appointments", buildAppointmentsTab());
+        add(tabs, BorderLayout.CENTER);
+
+
     }
 
     private JPanel buildAppointmentsTab() {
@@ -232,6 +241,249 @@ public class HealthcareView extends JFrame {
 
             statusLabel.setText("Modified appointment: " + appointmentID);
             refreshAppointmentsTable();
+
+        } catch (Exception ex) {
+            statusLabel.setText("Error: " + ex.getMessage());
+            JOptionPane.showMessageDialog(this, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    //----------------------------- Patients ---------------------------
+
+    private JPanel buildPatientsTab() {
+        JPanel panel = new JPanel(new BorderLayout(8, 8));
+
+        // ---- Table columns (include Address!) ----
+        String[] cols = {
+                "Patient ID", "First Name", "Last Name", "NHS Number",
+                "DOB", "Gender", "Phone", "Email",
+                "Address", "Postcode",
+                "Emergency Name", "Emergency Phone",
+                "Register Date", "GP Surgery ID"
+        };
+
+        patientsTableModel = new DefaultTableModel(cols, 0) {
+            @Override
+            public boolean isCellEditable(int row, int col) {
+                return false;
+            }
+        };
+
+        patientsTable = new JTable(patientsTableModel);
+        patientsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+
+        panel.add(new JScrollPane(patientsTable), BorderLayout.CENTER);
+
+        // ---- Buttons at bottom ----
+        JPanel bottom = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 10));
+        JButton addBtn = new JButton("Add");
+        JButton removeBtn = new JButton("Remove");
+        JButton modifyBtn = new JButton("Modify");
+
+        bottom.add(addBtn);
+        bottom.add(removeBtn);
+        bottom.add(modifyBtn);
+
+        panel.add(bottom, BorderLayout.SOUTH);
+
+        // ---- Actions ----
+        addBtn.addActionListener(e -> handleAddPatient());      // we’ll stub this next
+        removeBtn.addActionListener(e -> handleRemovePatient());
+        modifyBtn.addActionListener(e -> handleModifyPatient());
+
+        // initial load
+        refreshPatientsTable();
+
+        return panel;
+    }
+
+    private void refreshPatientsTable() {
+        controller.reloadPatients();
+        patientsTableModel.setRowCount(0);
+
+        for (Patient p : controller.getAllPatients()) {
+            patientsTableModel.addRow(patientRow(p));
+        }
+
+        statusLabel.setText("Loaded patients: " + controller.getAllPatients().size());
+    }
+
+    private Object[] patientRow(Patient p) {
+        return new Object[]{
+                p.getPatientID(),
+                p.getFirstName(),
+                p.getLastName(),
+                p.getNhsNumber(),
+                p.getDateOfBirth(), // if Date, prints; you can format later
+                p.getGender(),
+                p.getPhoneNumber(),
+                p.getEmail(),
+                p.getAddress(),     // ✅ address now displayed
+                p.getPostcode(),
+                p.getEmergencyContactName(),
+                p.getEmergencyContactPhone(),
+                p.getRegisterDate(),
+                p.getGpSurgeryID()
+        };
+    }
+
+
+
+    private void handleRemovePatient() {
+        int row = patientsTable.getSelectedRow();
+        if (row == -1) {
+            JOptionPane.showMessageDialog(this, "Select a patient first.");
+            return;
+        }
+
+        String patientID = patientsTableModel.getValueAt(row, 0).toString();
+
+        int confirm = JOptionPane.showConfirmDialog(
+                this,
+                "Remove patient " + patientID + "?\n(This will delete the record from patients.csv)",
+                "Confirm Remove",
+                JOptionPane.YES_NO_OPTION
+        );
+
+        if (confirm != JOptionPane.YES_OPTION) return;
+
+        try {
+            controller.removePatient(patientID);
+            statusLabel.setText("Removed patient: " + patientID);
+            refreshPatientsTable();
+        } catch (Exception ex) {
+            statusLabel.setText("Error: " + ex.getMessage());
+            JOptionPane.showMessageDialog(this, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+
+    private void handleModifyPatient() {
+        int row = patientsTable.getSelectedRow();
+        if (row == -1) {
+            JOptionPane.showMessageDialog(this, "Select a patient first.");
+            return;
+        }
+
+        String patientID = patientsTableModel.getValueAt(row, 0).toString();
+
+        Patient p = controller.getPatientByID(patientID);
+        if (p == null) {
+            JOptionPane.showMessageDialog(this, "Could not load patient: " + patientID);
+            return;
+        }
+
+        // Build one dialog panel (no new class)
+        JPanel form = new JPanel(new GridLayout(8, 2, 6, 6));
+
+        JTextField firstNameField = new JTextField(p.getFirstName());
+        JTextField lastNameField = new JTextField(p.getLastName());
+        JTextField phoneField = new JTextField(p.getPhoneNumber());
+        JTextField emailField = new JTextField(p.getEmail());
+        JTextField addressField = new JTextField(p.getAddress());
+        JTextField postcodeField = new JTextField(p.getPostcode());
+        JTextField emergencyNameField = new JTextField(p.getEmergencyContactName());
+        JTextField emergencyPhoneField = new JTextField(p.getEmergencyContactPhone());
+
+        form.add(new JLabel("First Name:")); form.add(firstNameField);
+        form.add(new JLabel("Last Name:")); form.add(lastNameField);
+        form.add(new JLabel("Phone:")); form.add(phoneField);
+        form.add(new JLabel("Email:")); form.add(emailField);
+        form.add(new JLabel("Address:")); form.add(addressField);
+        form.add(new JLabel("Postcode:")); form.add(postcodeField);
+        form.add(new JLabel("Emergency Name:")); form.add(emergencyNameField);
+        form.add(new JLabel("Emergency Phone:")); form.add(emergencyPhoneField);
+
+        int result = JOptionPane.showConfirmDialog(
+                this,
+                form,
+                "Modify Patient " + patientID,
+                JOptionPane.OK_CANCEL_OPTION,
+                JOptionPane.PLAIN_MESSAGE
+        );
+
+        if (result != JOptionPane.OK_OPTION) return;
+
+        try {
+            controller.updatePatientDetails(
+                    patientID,
+                    firstNameField.getText(),
+                    lastNameField.getText(),
+                    phoneField.getText(),
+                    emailField.getText(),
+                    addressField.getText(),
+                    postcodeField.getText(),
+                    emergencyNameField.getText(),
+                    emergencyPhoneField.getText()
+            );
+
+            statusLabel.setText("Updated patient: " + patientID);
+            refreshPatientsTable();
+
+        } catch (Exception ex) {
+            statusLabel.setText("Error: " + ex.getMessage());
+            JOptionPane.showMessageDialog(this, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+
+    private void handleAddPatient() {
+        try {
+            JPanel form = new JPanel(new GridLayout(12, 2, 6, 6));
+
+            JTextField firstNameField = new JTextField();
+            JTextField lastNameField = new JTextField();
+            JTextField dobField = new JTextField("1985-03-15"); // helpful example format
+            JTextField nhsField = new JTextField();
+            JTextField genderField = new JTextField("M"); // or F
+            JTextField phoneField = new JTextField();
+            JTextField emailField = new JTextField();
+            JTextField addressField = new JTextField();
+            JTextField postcodeField = new JTextField();
+            JTextField emergencyNameField = new JTextField();
+            JTextField emergencyPhoneField = new JTextField();
+            JTextField gpSurgeryField = new JTextField("S001"); // default example
+
+            form.add(new JLabel("First Name:")); form.add(firstNameField);
+            form.add(new JLabel("Last Name:")); form.add(lastNameField);
+            form.add(new JLabel("Date of Birth (YYYY-MM-DD):")); form.add(dobField);
+            form.add(new JLabel("NHS Number:")); form.add(nhsField);
+            form.add(new JLabel("Gender (M/F):")); form.add(genderField);
+            form.add(new JLabel("Phone Number:")); form.add(phoneField);
+            form.add(new JLabel("Email:")); form.add(emailField);
+            form.add(new JLabel("Address:")); form.add(addressField);
+            form.add(new JLabel("Postcode:")); form.add(postcodeField);
+            form.add(new JLabel("Emergency Contact Name:")); form.add(emergencyNameField);
+            form.add(new JLabel("Emergency Contact Phone:")); form.add(emergencyPhoneField);
+            form.add(new JLabel("GP Surgery ID:")); form.add(gpSurgeryField);
+
+            int result = JOptionPane.showConfirmDialog(
+                    this,
+                    form,
+                    "Add Patient",
+                    JOptionPane.OK_CANCEL_OPTION,
+                    JOptionPane.PLAIN_MESSAGE
+            );
+
+            if (result != JOptionPane.OK_OPTION) return;
+
+            Patient created = controller.addPatientFromForm(
+                    firstNameField.getText(),
+                    lastNameField.getText(),
+                    dobField.getText(),
+                    nhsField.getText(),
+                    genderField.getText(),
+                    phoneField.getText(),
+                    emailField.getText(),
+                    addressField.getText(),
+                    postcodeField.getText(),
+                    emergencyNameField.getText(),
+                    emergencyPhoneField.getText(),
+                    gpSurgeryField.getText()
+            );
+
+            statusLabel.setText("Added patient: " + created.getPatientID());
+            refreshPatientsTable();
 
         } catch (Exception ex) {
             statusLabel.setText("Error: " + ex.getMessage());
