@@ -14,7 +14,7 @@ public class Test {
         System.out.println("GP clinicians count: " + cm.findByTitle("GP").size());
         System.out.println("Clinicians at S001: " + cm.findByWorkplaceID("S001").size());
 
-        // Appointments Test
+        //------------------------ Appointments Test --------------------------------
 
         AppointmentManager am = new AppointmentManager("appointments.csv");
         am.load();
@@ -26,6 +26,16 @@ public class Test {
 
         boolean available = am.isClinicianAvailable("C001", LocalDate.parse("2025-09-20"), LocalTime.parse("09:00"));
         System.out.println("C001 available on 2025-09-20 at 09:00? " + available);
+
+//        AppointmentManager al = new AppointmentManager("appointments.csv");
+//        am.load();
+//
+//        System.out.println("Before save: " + am.getAllAppointments().size());
+//
+//        // Save without changes (should preserve file)
+//        am.saveAll();
+//
+//        System.out.println("Saved appointments.csv successfully");
 
 
 

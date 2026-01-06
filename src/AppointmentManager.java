@@ -12,6 +12,25 @@ public class AppointmentManager {
         this.appointments = new ArrayList<>();
     }
 
+    public void saveAll() {
+        ArrayList<String> out = new ArrayList<>();
+
+        // Header must match appointments.csv exactly
+        out.add(
+                "appointment_id,patient_id,clinician_id,facility_id," +
+                        "appointment_date,appointment_time,duration_minutes," +
+                        "appointment_type,status,reason_for_visit,notes," +
+                        "created_date,last_modified"
+        );
+
+        for (Appointment a : appointments) {
+            out.add(a.toCSV());
+        }
+
+        CSVHandler.writeLines(filename, out);
+    }
+
+
     public void load() {
         appointments.clear();
 
