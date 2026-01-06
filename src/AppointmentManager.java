@@ -52,6 +52,16 @@ public class AppointmentManager {
         return new ArrayList<>(appointments);
     }
 
+    public ArrayList<Appointment> getAppointmentByID(String appointmentID) {
+        ArrayList<Appointment> result = new ArrayList<>();
+        for (Appointment a : appointments){
+            if (a.getAppointmentID().equals(appointmentID)){
+                result.add(a);
+            }
+        }
+        return result;
+    }
+
     public ArrayList<Appointment> getAppointmentsByPatientID(String patientID) {
         ArrayList<Appointment> result = new ArrayList<>();
         for (Appointment a : appointments) {
@@ -84,4 +94,85 @@ public class AppointmentManager {
         }
         return true;
     }
+    // Generates AppointmentID Automatically
+    private String generateNextAppointmentID() {
+        int max = 0;
+
+        for (Appointment a : appointments) {
+            String id = a.getAppointmentID(); // e.g. "A001"
+            if (id != null && id.startsWith("A")) {
+                try {
+                    int num = Integer.parseInt(id.substring(1));
+                    if (num > max) max = num;
+                } catch (NumberFormatException ignored) {
+                    // ignore malformed IDs
+                }
+            }
+        }
+
+        int next = max + 1;
+        return String.format("A%03d", next); // A001, A002, ...
+    }
+
+
+    public Appointment bookAppointment(
+            String nhsNumber,
+            LocalDate date,
+            LocalTime time,
+            AppointmentType type,
+            AppointmentStatus status,
+            String reasonForVisit,
+            String notes,
+            PatientManager patientManager,
+            ClinicianManager clinicianManager
+    ) {
+        // 1) Find patient by NHS number
+        Patient patient = patientManager.findByNhsNumber(nhsNumber);
+        if (patient == null) {
+            throw new IllegalArgumentException("No patient found with NHS number: " + nhsNumber);
+        }
+
+        // 2) Find first available clinician (you can filter by title if you want)
+        Clinician chosen = null;
+        for (Clinician c : clinicianManager.getAllClinicians()) {
+            if (isClinicianAvailable(c.getClinicianID(), date, time)) {
+                chosen = c;
+                break;
+            }
+        }
+
+        if (chosen == null) {
+            throw new IllegalStateException("No clinicians available for " + date + " at " + time);
+        }
+
+
+
+        // 3) Build appointment (facility comes from clinician workplace)
+        String newId = generateNextAppointmentID();
+
+        Appointment newAppointment = new Appointment(
+                newId,
+                patient.getPatientID(),
+                chosen.getClinicianID(),
+                chosen.getWorkplaceID(),
+                date,
+                time,
+                15, // default duration
+                type,
+                status,
+                reasonForVisit,
+                notes,
+                LocalDate.now(),
+                LocalDate.now()
+        );
+
+        // 4) Save to in-memory list + persist
+        appointments.add(newAppointment);
+        saveAll();
+
+        return newAppointment;
+    }
+
+
+
 }

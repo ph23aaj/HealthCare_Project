@@ -37,6 +37,34 @@ public class Test {
 //
 //        System.out.println("Saved appointments.csv successfully");
 
+        PatientManager pm = new PatientManager("patients.csv");
+        pm.load();
+
+        ClinicianManager cliniciantest = new ClinicianManager("clinicians.csv");
+        cliniciantest.load();
+
+        AppointmentManager appointtest = new AppointmentManager("appointments.csv");
+        appointtest.load();
+
+        System.out.println("Appointments before: " + am.getAllAppointments().size());
+
+        Appointment booked = am.bookAppointment(
+                "1234567890",
+                LocalDate.parse("2025-09-20"),
+                LocalTime.parse("10:00"),
+                AppointmentType.ROUTINE,
+                AppointmentStatus.SCHEDULED,
+                "Booking test via code",
+                "Created during test",
+                pm,
+                cliniciantest
+        );
+
+        System.out.println("Booked: " + booked);
+        System.out.println("Appointment1: " + am.getAppointmentByID("A001"));
+        System.out.println("Appointments after: " + am.getAllAppointments().size());
+
+
 
 
     }
