@@ -48,12 +48,13 @@ public class Test {
 
         System.out.println("Appointments before: " + am.getAllAppointments().size());
 
+        am.deleteAppointment("A013");
+
         Appointment booked = am.bookAppointment(
                 "1234567890",
                 LocalDate.parse("2025-09-20"),
                 LocalTime.parse("10:00"),
                 AppointmentType.ROUTINE,
-                AppointmentStatus.SCHEDULED,
                 "Booking test via code",
                 "Created during test",
                 pm,
@@ -64,8 +65,26 @@ public class Test {
         System.out.println("Appointment1: " + am.getAppointmentByID("A001"));
         System.out.println("Appointments after: " + am.getAllAppointments().size());
 
+        // Test Cancel Appointment
+        am.cancelAppointment(booked.getAppointmentID());
+
+        // Test Modify Appointment
+        // am.rescheduleAppointment("A016", LocalDate.parse("2027-09-20"), LocalTime.parse("12:00"));
+
+        // Test Delete Appointment
+
+        am.deleteAppointment("A013");
+
+        System.out.println("Before: " + am.getAllAppointments().size());
 
 
 
+        am.load(); // reload from file to confirm persistence
+        System.out.println("After: " + am.getAllAppointments().size());
     }
+
+
+
+
+
 }

@@ -52,14 +52,13 @@ public class AppointmentManager {
         return new ArrayList<>(appointments);
     }
 
-    public ArrayList<Appointment> getAppointmentByID(String appointmentID) {
-        ArrayList<Appointment> result = new ArrayList<>();
+    public Appointment getAppointmentByID(String appointmentID) {
         for (Appointment a : appointments){
             if (a.getAppointmentID().equals(appointmentID)){
-                result.add(a);
+                return a;
             }
         }
-        return result;
+        return null;
     }
 
     public ArrayList<Appointment> getAppointmentsByPatientID(String patientID) {
@@ -120,19 +119,18 @@ public class AppointmentManager {
             LocalDate date,
             LocalTime time,
             AppointmentType type,
-            AppointmentStatus status,
             String reasonForVisit,
             String notes,
             PatientManager patientManager,
             ClinicianManager clinicianManager
     ) {
-        // 1) Find patient by NHS number
+        // Find patient by NHS number
         Patient patient = patientManager.findByNhsNumber(nhsNumber);
         if (patient == null) {
             throw new IllegalArgumentException("No patient found with NHS number: " + nhsNumber);
         }
 
-        // 2) Find first available clinician (you can filter by title if you want)
+        // Find first available clinician (you can filter by title if you want)
         Clinician chosen = null;
         for (Clinician c : clinicianManager.getAllClinicians()) {
             if (isClinicianAvailable(c.getClinicianID(), date, time)) {
@@ -147,7 +145,7 @@ public class AppointmentManager {
 
 
 
-        // 3) Build appointment (facility comes from clinician workplace)
+        // Build appointment
         String newId = generateNextAppointmentID();
 
         Appointment newAppointment = new Appointment(
@@ -159,7 +157,7 @@ public class AppointmentManager {
                 time,
                 15, // default duration
                 type,
-                status,
+                AppointmentStatus.SCHEDULED,
                 reasonForVisit,
                 notes,
                 LocalDate.now(),
@@ -171,6 +169,63 @@ public class AppointmentManager {
         saveAll();
 
         return newAppointment;
+    }
+
+    public void cancelAppointment(String appointmentID) {
+        Appointment a = getAppointmentByID(appointmentID);
+
+        if (a == null) {
+            throw new IllegalArgumentException("No appointment found with ID: " + appointmentID);
+        }
+
+        // If you want to prevent double-cancel:
+        if (a.getStatus() == AppointmentStatus.CANCELLED) {
+            throw new IllegalStateException("Appointment already cancelled: " + appointmentID);
+        }
+
+        a.setStatus(AppointmentStatus.CANCELLED);
+        a.setAppointmentModified(LocalDate.now());
+
+        saveAll();
+    }
+
+    public void rescheduleAppointment(String appointmentID, LocalDate newDate, LocalTime newTime) {
+        Appointment a = getAppointmentByID(appointmentID);
+
+        if (a == null) {
+            throw new IllegalArgumentException("No appointment found with ID: " + appointmentID);
+        }
+
+        if (a.getStatus() == AppointmentStatus.CANCELLED) {
+            throw new IllegalStateException("Cannot reschedule a cancelled appointment: " + appointmentID);
+        }
+
+        // If date/time unchanged, no-op
+        if (a.getAppointmentDate().equals(newDate) && a.getAppointmentTime().equals(newTime)) {
+            return;
+        }
+
+        // Check availability ignoring this appointment itself
+        if (!isClinicianAvailable(a.getClinicianID(), newDate, newTime)) {
+            throw new IllegalStateException("Clinician not available on " + newDate + " at " + newTime);
+        }
+
+        a.setAppointmentDate(newDate);
+        a.setAppointmentTime(newTime);
+        a.setAppointmentModified(LocalDate.now());
+
+        saveAll();
+    }
+
+    public void deleteAppointment(String appointmentID) {
+        for (int i = 0; i < appointments.size(); i++) {
+            if (appointments.get(i).getAppointmentID().equals(appointmentID)) {
+                appointments.remove(i);
+                saveAll();
+                return;
+            }
+        }
+        throw new IllegalArgumentException("No appointment found with ID: " + appointmentID);
     }
 
 
