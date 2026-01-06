@@ -228,6 +228,21 @@ public class AppointmentManager {
         throw new IllegalArgumentException("No appointment found with ID: " + appointmentID);
     }
 
+    private boolean isClinicianAvailableExcluding(String clinicianID, LocalDate date, LocalTime time, String excludeAppointmentID) {
+        for (Appointment a : appointments) {
+            if (a.getAppointmentID().equals(excludeAppointmentID)) continue;
+
+            if (a.getClinicianID().equals(clinicianID)
+                    && a.getAppointmentDate().equals(date)
+                    && a.getAppointmentTime().equals(time)
+                    && a.getStatus() != AppointmentStatus.CANCELLED) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+
 
 
 }
