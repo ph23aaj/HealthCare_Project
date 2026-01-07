@@ -128,7 +128,7 @@ public class PatientManager {
     }
 
     public Patient createAndAddPatient(
-            String firstName, String lastName, String dobText, String nhsNumber, String gender,
+            String firstName, String lastName, String dobText, String nhsNumber, String genderText,
             String phone, String email, String address, String postcode,
             String emergencyName, String emergencyPhone,
             String gpSurgeryID
@@ -158,7 +158,7 @@ public class PatientManager {
                     lastName.trim(),
                     dob,
                     nhsNumber.trim(),
-                    gender.trim(),
+                    PatientGender.fromString(genderText),
                     phone.trim(),
                     email.trim(),
                     address.trim(),

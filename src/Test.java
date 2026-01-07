@@ -81,6 +81,8 @@ public class Test {
 
         am.load(); // reload from file to confirm persistence
         System.out.println("After: " + am.getAllAppointments().size());
+
+
     }
 
 

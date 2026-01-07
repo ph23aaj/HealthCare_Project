@@ -6,7 +6,7 @@ public class Patient extends People {
 private String patientID;
 private Date dateOfBirth;
 private String nhsNumber;
-private String gender;
+private PatientGender gender;
 private String address;
 private String postcode;
 private String emergencyContactName;
@@ -15,7 +15,7 @@ private Date registerDate;
 private String gpSurgeryID;
 
     public Patient(String patientID, String firstName, String lastName, Date dateOfBirth,
-                   String nhsNumber, String gender, String phoneNumber, String email,
+                   String nhsNumber, PatientGender gender, String phoneNumber, String email,
                    String address, String postcode, String emergencyContactName,
                    String emergencyContactPhone, Date registerDate, String gpSurgeryID) {
         super(firstName, lastName, phoneNumber, email);
@@ -55,11 +55,11 @@ private String gpSurgeryID;
         this.nhsNumber = nhsNumber;
     }
 
-    public String getGender() {
+    public PatientGender getGender() {
         return gender;
     }
 
-    public void setGender(String gender) {
+    public void setGender(PatientGender gender) {
         this.gender = gender;
     }
 
@@ -120,7 +120,7 @@ private String gpSurgeryID;
                 escapeCsv(getLastName()),
                 sdf.format(dateOfBirth),
                 nhsNumber,
-                gender,
+                gender.name(),
                 escapeCsv(getPhoneNumber()),
                 escapeCsv(getEmail()),
                 escapeCsv(address),
@@ -150,7 +150,7 @@ private String gpSurgeryID;
                     c[2],  // lastName
                     dob,
                     c[4],  // nhsNumber
-                    c[5],  // gender
+                    PatientGender.fromString(c[5]),  // gender
                     c[6],  // phoneNumber
                     c[7],  // email
                     c[8],  // address

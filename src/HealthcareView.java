@@ -323,7 +323,7 @@ public class HealthcareView extends JFrame {
                 p.getLastName(),
                 p.getNhsNumber(),
                 fmtDate(p.getDateOfBirth()), // if Date, prints; you can format later
-                p.getGender(),
+                p.getGender().name(),
                 p.getPhoneNumber(),
                 p.getEmail(),
                 p.getAddress(),
@@ -443,7 +443,7 @@ public class HealthcareView extends JFrame {
             JTextField lastNameField = new JTextField();
             JTextField dobField = new JTextField("1985-03-15"); // helpful example format
             JTextField nhsField = new JTextField();
-            JTextField genderField = new JTextField("M"); // or F
+            JComboBox<PatientGender> genderBox = new JComboBox<>(PatientGender.values());
             JTextField phoneField = new JTextField();
             JTextField emailField = new JTextField();
             JTextField addressField = new JTextField();
@@ -456,7 +456,7 @@ public class HealthcareView extends JFrame {
             form.add(new JLabel("Last Name:")); form.add(lastNameField);
             form.add(new JLabel("Date of Birth (YYYY-MM-DD):")); form.add(dobField);
             form.add(new JLabel("NHS Number:")); form.add(nhsField);
-            form.add(new JLabel("Gender (M/F):")); form.add(genderField);
+            form.add(new JLabel("Gender:")); form.add(genderBox);
             form.add(new JLabel("Phone Number:")); form.add(phoneField);
             form.add(new JLabel("Email:")); form.add(emailField);
             form.add(new JLabel("Address:")); form.add(addressField);
@@ -480,7 +480,7 @@ public class HealthcareView extends JFrame {
                     lastNameField.getText(),
                     dobField.getText(),
                     nhsField.getText(),
-                    genderField.getText(),
+                    genderBox.getSelectedItem().toString(),
                     phoneField.getText(),
                     emailField.getText(),
                     addressField.getText(),
