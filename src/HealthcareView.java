@@ -4,6 +4,8 @@ import java.awt.*;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 public class HealthcareView extends JFrame {
 
@@ -19,6 +21,7 @@ public class HealthcareView extends JFrame {
     private DefaultTableModel appointmentsTableModel;
     private JTable patientsTable;
     private javax.swing.table.DefaultTableModel patientsTableModel;
+    private static final SimpleDateFormat DATE_FMT = new SimpleDateFormat("yyyy-MM-dd");
 
 
     public HealthcareView(HealthcareController controller) {
@@ -35,7 +38,6 @@ public class HealthcareView extends JFrame {
         setLayout(new BorderLayout());
 
         JTabbedPane tabs = new JTabbedPane();
-        tabs.add("Appointments", buildAppointmentsTab());
         add(tabs, BorderLayout.CENTER);
 
         statusLabel = new JLabel(" ");
@@ -47,6 +49,12 @@ public class HealthcareView extends JFrame {
 
 
     }
+
+    private String fmtDate(Date d) {
+        return (d == null) ? "" : DATE_FMT.format(d);
+    }
+
+    //------------------------- Appointments ------------------------------
 
     private JPanel buildAppointmentsTab() {
         JPanel panel = new JPanel(new BorderLayout(8, 8));
@@ -314,15 +322,15 @@ public class HealthcareView extends JFrame {
                 p.getFirstName(),
                 p.getLastName(),
                 p.getNhsNumber(),
-                p.getDateOfBirth(), // if Date, prints; you can format later
+                fmtDate(p.getDateOfBirth()), // if Date, prints; you can format later
                 p.getGender(),
                 p.getPhoneNumber(),
                 p.getEmail(),
-                p.getAddress(),     // ✅ address now displayed
+                p.getAddress(),
                 p.getPostcode(),
                 p.getEmergencyContactName(),
                 p.getEmergencyContactPhone(),
-                p.getRegisterDate(),
+                fmtDate(p.getRegisterDate()),
                 p.getGpSurgeryID()
         };
     }

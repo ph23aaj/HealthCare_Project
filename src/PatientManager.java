@@ -133,6 +133,11 @@ public class PatientManager {
             String emergencyName, String emergencyPhone,
             String gpSurgeryID
     ) {
+        validateNhsNumber(nhsNumber);
+        validatePhoneNumber(phone);
+        validatePhoneNumber(emergencyPhone); // same rule applies
+        validateEmail(email);
+
         // Validate NHS uniqueness
         if (findByNhsNumber(nhsNumber) != null) {
             throw new IllegalArgumentException("A patient with this NHS number already exists.");
@@ -164,12 +169,31 @@ public class PatientManager {
                     gpSurgeryID.trim()
             );
 
-            addPatient(p); // will saveAll if you updated it
+            addPatient(p);
             return p;
 
         } catch (Exception e) {
             throw new IllegalArgumentException("Invalid date of birth. Use YYYY-MM-DD.");
         }
     }
+
+    private void validateNhsNumber(String nhsNumber) {
+        if (nhsNumber == null || !nhsNumber.matches("\\d{10}")) {
+            throw new IllegalArgumentException("NHS number must be exactly 10 digits.");
+        }
+    }
+
+    private void validatePhoneNumber(String phone) {
+        if (phone == null || !phone.matches("\\d{11}")) {
+            throw new IllegalArgumentException("Phone number must be exactly 11 digits.");
+        }
+    }
+
+    private void validateEmail(String email) {
+        if (email == null || !email.contains("@")) {
+            throw new IllegalArgumentException("Email address must contain '@'.");
+        }
+    }
+
 
 }
