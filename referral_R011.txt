@@ -1,27 +1,27 @@
-=== REFERRAL EMAIL (SIMULATED) ===
+=== REFERRAL EMAIL ===
 Referral ID: R011
-Status: New
+Status: In Progress
 Created: 2026-01-08
 Last Updated: 2026-01-08
 
-From Clinician: C001
+From Clinician: C004
 To Clinician: C005
-From Facility: S001
+From Facility: S003
 To Facility: H001
 
+Patient ID: P001
 Referral Date: 2026-01-08
 Urgency Level: Routine
 
 Reason for Referral:
-Referral reason test
+wwd
 
 Clinical Summary:
-Clinical summary test (created by test)
+dwdw
 
 Requested Investigations:
-ECG|Echo
+dwdwd
 
 Referral Notes:
-Notes created by TestReferralCreate
+dwdw
 
-=== END ===

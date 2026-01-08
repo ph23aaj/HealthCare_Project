@@ -26,6 +26,9 @@ public class HealthcareView extends JFrame {
     private javax.swing.table.DefaultTableModel cliniciansTableModel;
     private JTable referralsTable;
     private javax.swing.table.DefaultTableModel referralsTableModel;
+    private JTable prescriptionsTable;
+    private javax.swing.table.DefaultTableModel prescriptionsTableModel;
+
 
 
 
@@ -53,6 +56,8 @@ public class HealthcareView extends JFrame {
         tabs.add("Appointments", buildAppointmentsTab());
         tabs.add("Clinicians", buildCliniciansTab());
         tabs.add("Referrals", buildReferralsTab());
+        tabs.add("Prescriptions", buildPrescriptionsTab());
+
         add(tabs, BorderLayout.CENTER);
 
 
@@ -320,8 +325,6 @@ public class HealthcareView extends JFrame {
         for (Patient p : controller.getAllPatients()) {
             patientsTableModel.addRow(patientRow(p));
         }
-
-        statusLabel.setText("Loaded patients: " + controller.getAllPatients().size());
     }
 
     private Object[] patientRow(Patient p) {
@@ -562,7 +565,6 @@ public class HealthcareView extends JFrame {
             cliniciansTableModel.addRow(clinicianRow(c));
         }
 
-        statusLabel.setText("Loaded clinicians: " + controller.getAllClinicians().size());
     }
 
     private Object[] clinicianRow(Clinician c) {
@@ -1006,8 +1008,6 @@ public class HealthcareView extends JFrame {
         for (Referral r : controller.getAllReferrals()) {
             referralsTableModel.addRow(referralRow(r));
         }
-
-        statusLabel.setText("Loaded referrals: " + controller.getAllReferrals().size());
     }
 
     private Object[] referralRow(Referral r) {
@@ -1092,6 +1092,299 @@ public class HealthcareView extends JFrame {
             JOptionPane.showMessageDialog(this, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
+
+//------------------------------- Prescriptions ------------------------------------
+
+    private JPanel buildPrescriptionsTab() {
+        JPanel panel = new JPanel(new BorderLayout(8, 8));
+
+        String[] cols = {
+                "Prescription ID", "Patient ID", "Clinician ID", "Appointment ID",
+                "Prescription Date", "Medication", "Dosage", "Frequency",
+                "Duration Days", "Quantity", "Instructions", "Pharmacy",
+                "Status", "Issue Date", "Collection Date"
+        };
+
+        prescriptionsTableModel = new DefaultTableModel(cols, 0) {
+            @Override
+            public boolean isCellEditable(int row, int col) { return false; }
+        };
+
+        prescriptionsTable = new JTable(prescriptionsTableModel);
+        prescriptionsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+
+        panel.add(new JScrollPane(prescriptionsTable), BorderLayout.CENTER);
+
+        JPanel bottom = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 10));
+        JButton addBtn = new JButton("Add");
+        JButton removeBtn = new JButton("Remove");
+        JButton modifyBtn = new JButton("Modify");
+
+        bottom.add(addBtn);
+        bottom.add(removeBtn);
+        bottom.add(modifyBtn);
+
+        panel.add(bottom, BorderLayout.SOUTH);
+
+        addBtn.addActionListener(e -> handleAddPrescription());
+        removeBtn.addActionListener(e -> handleRemovePrescription());
+        modifyBtn.addActionListener(e -> handleModifyPrescription());
+
+        refreshPrescriptionsTable();
+
+        return panel;
+    }
+
+    private void refreshPrescriptionsTable() {
+        controller.reloadPrescriptions();
+        prescriptionsTableModel.setRowCount(0);
+
+        for (Prescription p : controller.getAllPrescriptions()) {
+            prescriptionsTableModel.addRow(prescriptionRow(p));
+        }
+    }
+
+    private Object[] prescriptionRow(Prescription p) {
+        return new Object[]{
+                p.getPrescriptionID(),
+                p.getPatientID(),
+                p.getClinicianID(),
+                p.getAppointmentID(),
+                p.getPrescriptionDate(),
+                p.getMedicationName(),
+                p.getDosage(),
+                p.getFrequency(),
+                p.getDurationDays(),
+                p.getQuantity(),
+                p.getInstructions(),
+                p.getPharmacyName(),
+                p.getStatus(),
+                p.getIssueDate(),
+                p.getCollectionDate()
+        };
+    }
+
+    private void handleRemovePrescription() {
+        int row = prescriptionsTable.getSelectedRow();
+        if (row == -1) {
+            JOptionPane.showMessageDialog(this, "Select a prescription first.");
+            return;
+        }
+
+        String id = prescriptionsTableModel.getValueAt(row, 0).toString();
+
+        int confirm = JOptionPane.showConfirmDialog(
+                this,
+                "Delete prescription " + id + "?\n(This will remove it from prescriptions.csv)",
+                "Confirm Delete",
+                JOptionPane.YES_NO_OPTION
+        );
+
+        if (confirm != JOptionPane.YES_OPTION) return;
+
+        try {
+            controller.deletePrescription(id);
+            statusLabel.setText("Deleted prescription: " + id);
+            refreshPrescriptionsTable();
+        } catch (Exception ex) {
+            statusLabel.setText("Error: " + ex.getMessage());
+            JOptionPane.showMessageDialog(this, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void handleModifyPrescription() {
+        int row = prescriptionsTable.getSelectedRow();
+        if (row == -1) {
+            JOptionPane.showMessageDialog(this, "Select a prescription first.");
+            return;
+        }
+
+        String id = prescriptionsTableModel.getValueAt(row, 0).toString();
+        String currentStatus = prescriptionsTableModel.getValueAt(row, 12).toString();
+
+        // Only allow Issued -> Collected
+        if ("Collected".equalsIgnoreCase(currentStatus.trim())) {
+            JOptionPane.showMessageDialog(this, "This prescription is already marked as Collected.");
+            return;
+        }
+
+        JTextField dateField = new JTextField(LocalDate.now().toString()); // YYYY-MM-DD
+
+        JPanel form = new JPanel(new GridLayout(1, 2, 6, 6));
+        form.add(new JLabel("Collection Date (YYYY-MM-DD):"));
+        form.add(dateField);
+
+        int result = JOptionPane.showConfirmDialog(
+                this,
+                form,
+                "Mark Prescription Collected (" + id + ")",
+                JOptionPane.OK_CANCEL_OPTION,
+                JOptionPane.PLAIN_MESSAGE
+        );
+
+        if (result != JOptionPane.OK_OPTION) return;
+
+        LocalDate collectionDate;
+        try {
+            collectionDate = LocalDate.parse(dateField.getText().trim());
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "Invalid date. Use YYYY-MM-DD.");
+            return;
+        }
+
+        try {
+            controller.markPrescriptionCollected(id, collectionDate);
+            statusLabel.setText("Prescription " + id + " marked Collected.");
+            refreshPrescriptionsTable();
+        } catch (Exception ex) {
+            statusLabel.setText("Error: " + ex.getMessage());
+            JOptionPane.showMessageDialog(this, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void handleAddPrescription() {
+        // Load patients + clinicians for dropdowns
+        ArrayList<Patient> patients = controller.getAllPatients();
+        ArrayList<Clinician> clinicians = controller.getAllClinicians();
+
+        if (patients.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "No patients loaded.");
+            return;
+        }
+        if (clinicians.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "No clinicians loaded.");
+            return;
+        }
+
+        JComboBox<String> patientBox = new JComboBox<>();
+        for (Patient p : patients) {
+            patientBox.addItem(p.getPatientID() + " - " + p.getFirstName() + " " + p.getLastName());
+        }
+
+        JComboBox<String> clinicianBox = new JComboBox<>();
+        for (Clinician c : clinicians) {
+            clinicianBox.addItem(c.getClinicianID() + " - " + c.getTitle() + " " + c.getFirstName() + " " + c.getLastName());
+        }
+
+        JTextField appointmentIdField = new JTextField(); // can be blank if not tied to appointment
+        JTextField prescriptionDateField = new JTextField(LocalDate.now().toString());
+
+        JTextField medicationField = new JTextField();
+        JTextField dosageField = new JTextField();
+        JTextField frequencyField = new JTextField();
+        JTextField durationField = new JTextField();
+        JTextField quantityField = new JTextField();
+        JTextArea instructionsArea = new JTextArea(3, 20);
+        JTextField pharmacyField = new JTextField();
+
+        instructionsArea.setLineWrap(true);
+        instructionsArea.setWrapStyleWord(true);
+
+        JPanel form = new JPanel(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new java.awt.Insets(4, 4, 4, 4);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.gridx = 0; gbc.gridy = 0;
+
+        form.add(new JLabel("Patient:"), gbc); gbc.gridx = 1; form.add(patientBox, gbc);
+        gbc.gridx = 0; gbc.gridy++;
+        form.add(new JLabel("Clinician:"), gbc); gbc.gridx = 1; form.add(clinicianBox, gbc);
+        gbc.gridx = 0; gbc.gridy++;
+        form.add(new JLabel("Appointment ID (optional):"), gbc); gbc.gridx = 1; form.add(appointmentIdField, gbc);
+        gbc.gridx = 0; gbc.gridy++;
+        form.add(new JLabel("Prescription Date (YYYY-MM-DD):"), gbc); gbc.gridx = 1; form.add(prescriptionDateField, gbc);
+        gbc.gridx = 0; gbc.gridy++;
+        form.add(new JLabel("Medication Name:"), gbc); gbc.gridx = 1; form.add(medicationField, gbc);
+        gbc.gridx = 0; gbc.gridy++;
+        form.add(new JLabel("Dosage:"), gbc); gbc.gridx = 1; form.add(dosageField, gbc);
+        gbc.gridx = 0; gbc.gridy++;
+        form.add(new JLabel("Frequency:"), gbc); gbc.gridx = 1; form.add(frequencyField, gbc);
+        gbc.gridx = 0; gbc.gridy++;
+        form.add(new JLabel("Duration Days:"), gbc); gbc.gridx = 1; form.add(durationField, gbc);
+        gbc.gridx = 0; gbc.gridy++;
+        form.add(new JLabel("Quantity:"), gbc); gbc.gridx = 1; form.add(quantityField, gbc);
+        gbc.gridx = 0; gbc.gridy++;
+        gbc.anchor = GridBagConstraints.NORTHWEST;
+        form.add(new JLabel("Instructions:"), gbc); gbc.gridx = 1; form.add(new JScrollPane(instructionsArea), gbc);
+        gbc.gridx = 0; gbc.gridy++;
+        gbc.anchor = GridBagConstraints.CENTER;
+        form.add(new JLabel("Pharmacy Name:"), gbc); gbc.gridx = 1; form.add(pharmacyField, gbc);
+
+        int result = JOptionPane.showConfirmDialog(
+                this, form, "Add Prescription", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE
+        );
+
+        if (result != JOptionPane.OK_OPTION) return;
+
+        String patientID = ((String) patientBox.getSelectedItem()).split(" - ")[0].trim();
+        String clinicianID = ((String) clinicianBox.getSelectedItem()).split(" - ")[0].trim();
+        String appointmentID = appointmentIdField.getText().trim();
+
+        // --- Validation: required fields ---
+        if (medicationField.getText().trim().isEmpty()
+                || dosageField.getText().trim().isEmpty()
+                || frequencyField.getText().trim().isEmpty()
+                || durationField.getText().trim().isEmpty()
+                || quantityField.getText().trim().isEmpty()
+                || instructionsArea.getText().trim().isEmpty()
+                || pharmacyField.getText().trim().isEmpty()
+                || prescriptionDateField.getText().trim().isEmpty()) {
+
+            JOptionPane.showMessageDialog(
+                    this,
+                    "All fields must be filled except Appointment ID.",
+                    "Missing Information",
+                    JOptionPane.ERROR_MESSAGE
+            );
+            return;
+        }
+
+        LocalDate pDate;
+        try {
+            pDate = LocalDate.parse(prescriptionDateField.getText().trim());
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "Prescription date must be YYYY-MM-DD.");
+            return;
+        }
+
+        int durationDays;
+        try {
+            durationDays = Integer.parseInt(durationField.getText().trim());
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "Duration Days must be a number.");
+            return;
+        }
+
+        try {
+            Prescription created = controller.createPrescription(
+                    patientID,
+                    clinicianID,
+                    appointmentID,
+                    pDate,
+                    medicationField.getText(),
+                    dosageField.getText(),
+                    frequencyField.getText(),
+                    durationDays,
+                    quantityField.getText(),
+                    instructionsArea.getText(),
+                    pharmacyField.getText()
+            );
+
+            statusLabel.setText("Created prescription " + created.getPrescriptionID() + " (Issued).");
+            refreshPrescriptionsTable();
+
+            JOptionPane.showMessageDialog(this,
+                    "Prescription created: " + created.getPrescriptionID() + "\nA prescription text file has been generated.",
+                    "Success",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
+
+        } catch (Exception ex) {
+            statusLabel.setText("Error: " + ex.getMessage());
+            JOptionPane.showMessageDialog(this, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
 
 
 

@@ -230,6 +230,43 @@ public class HealthcareController {
     }
 
 
+//----------------------------- Prescriptions ----------------------------------------------
+
+    public void reloadPrescriptions() {
+        model.getPrescriptionManager().load();
+    }
+
+    public ArrayList<Prescription> getAllPrescriptions() {
+        return model.getPrescriptionManager().getAllPrescriptions();
+    }
+
+    public void deletePrescription(String prescriptionID) {
+        model.getPrescriptionManager().deletePrescription(prescriptionID);
+    }
+
+    public Prescription createPrescription(
+            String patientID,
+            String clinicianID,
+            String appointmentID,
+            LocalDate prescriptionDate,
+            String medicationName,
+            String dosage,
+            String frequency,
+            int durationDays,
+            String quantity,
+            String instructions,
+            String pharmacyName
+    ) {
+        return model.getPrescriptionManager().createPrescription(
+                patientID, clinicianID, appointmentID,
+                prescriptionDate, medicationName, dosage, frequency,
+                durationDays, quantity, instructions, pharmacyName
+        );
+    }
+
+    public void markPrescriptionCollected(String prescriptionID, LocalDate collectionDate) {
+        model.getPrescriptionManager().markCollected(prescriptionID, collectionDate);
+    }
 
 
 }

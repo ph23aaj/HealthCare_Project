@@ -1,0 +1,23 @@
+=== PRESCRIPTION (SIMULATED OUTPUT) ===
+Prescription ID: RX012
+Status: Issued
+
+Patient ID: P001
+Clinician ID: C001
+Appointment ID: 
+
+Prescription Date: 2026-01-08
+Issue Date: 2026-01-08
+Collection Date: null
+
+Medication: 
+Dosage: 
+Frequency: 
+Duration Days: 2
+Quantity: 
+
+Instructions:
+
+
+Pharmacy: 
+=== END ===
