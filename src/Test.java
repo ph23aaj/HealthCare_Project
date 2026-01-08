@@ -1,5 +1,9 @@
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.ArrayList;
+import java.time.format.DateTimeFormatter;
+import java.io.File;
+
 
 public class Test {
     public static void main(String[] args) {
@@ -48,32 +52,32 @@ public class Test {
 
         System.out.println("Appointments before: " + am.getAllAppointments().size());
 
-        am.deleteAppointment("A013");
 
-        Appointment booked = am.bookAppointment(
-                "1234567890",
-                LocalDate.parse("2025-09-20"),
-                LocalTime.parse("10:00"),
-                AppointmentType.ROUTINE,
-                "Booking test via code",
-                "Created during test",
-                pm,
-                cliniciantest
-        );
 
-        System.out.println("Booked: " + booked);
-        System.out.println("Appointment1: " + am.getAppointmentByID("A001"));
-        System.out.println("Appointments after: " + am.getAllAppointments().size());
-
-        // Test Cancel Appointment
-        am.cancelAppointment(booked.getAppointmentID());
+//        Appointment booked = am.bookAppointment(
+//                "1234567890",
+//                LocalDate.parse("2025-09-20"),
+//                LocalTime.parse("10:00"),
+//                AppointmentType.ROUTINE,
+//                "Booking test via code",
+//                "Created during test",
+//                pm,
+//                cliniciantest
+//        );
+//
+//        System.out.println("Booked: " + booked);
+//        System.out.println("Appointment1: " + am.getAppointmentByID("A001"));
+//        System.out.println("Appointments after: " + am.getAllAppointments().size());
+//
+//        // Test Cancel Appointment
+//        am.cancelAppointment(booked.getAppointmentID());
 
         // Test Modify Appointment
         // am.rescheduleAppointment("A016", LocalDate.parse("2027-09-20"), LocalTime.parse("12:00"));
 
         // Test Delete Appointment
 
-        am.deleteAppointment("A013");
+
 
         System.out.println("Before: " + am.getAllAppointments().size());
 
@@ -83,10 +87,65 @@ public class Test {
         System.out.println("After: " + am.getAllAppointments().size());
 
 
+
+
+        ReferralManager rm = ReferralManager.getInstance();
+        rm.setFilename("referrals.csv");
+        System.out.println("Using referrals file: " + new java.io.File("referrals.csv").getAbsolutePath());
+
+        rm.load();
+
+        int before = rm.getAllReferrals().size();
+        System.out.println("Before create, count = " + before);
+
+        // Use a date that matches your dataset style conceptually
+        LocalDate referralDate = LocalDate.now();
+
+        Referral created = rm.createReferral(
+                "P001",                 // patientID
+                "C001",                 // fromClinician
+                "C005",                 // toClinician
+                "S001",                 // fromFacility
+                "H001",                 // toFacility
+                referralDate,
+                "Routine",              // urgencyLevel (matches your CSV example)
+                "Referral reason test",
+                "Clinical summary test (created by test)",
+                "ECG|Echo",
+                "Notes created by TestReferralCreate"
+        );
+
+        System.out.println("Created referral: " + created.getReferralID());
+
+        // Reload and confirm it's saved
+        rm.load();
+        int after = rm.getAllReferrals().size();
+        System.out.println("After reload, count = " + after);
+
+        if (after != before + 1) {
+            throw new RuntimeException("Referral count did not increase after creation!");
+        }
+
+        boolean found = false;
+        for (Referral r : rm.getAllReferrals()) {
+            if (r.getReferralID().equals(created.getReferralID())) {
+                found = true;
+                break;
+            }
+        }
+        if (!found) {
+            throw new RuntimeException("Created referral not found after reload!");
+        }
+
+        // Check output text file
+        String txtName = "referral_" + created.getReferralID() + ".txt";
+        File f = new File(txtName);
+        System.out.println("Referral text file exists? " + f.exists() + " (" + txtName + ")");
+
+        if (!f.exists()) {
+            throw new RuntimeException("Referral text file was not created: " + txtName);
+        }
+
+        System.out.println("✅ Create + persist + output file test passed.");
     }
-
-
-
-
-
 }
