@@ -22,6 +22,9 @@ public class HealthcareView extends JFrame {
     private JTable patientsTable;
     private javax.swing.table.DefaultTableModel patientsTableModel;
     private static final SimpleDateFormat DATE_FMT = new SimpleDateFormat("yyyy-MM-dd");
+    private JTable cliniciansTable;
+    private javax.swing.table.DefaultTableModel cliniciansTableModel;
+
 
 
     public HealthcareView(HealthcareController controller) {
@@ -45,6 +48,7 @@ public class HealthcareView extends JFrame {
 
         tabs.add("Patients", buildPatientsTab());
         tabs.add("Appointments", buildAppointmentsTab());
+        tabs.add("Clinicians", buildCliniciansTab());
         add(tabs, BorderLayout.CENTER);
 
 
@@ -497,6 +501,266 @@ public class HealthcareView extends JFrame {
             statusLabel.setText("Error: " + ex.getMessage());
             JOptionPane.showMessageDialog(this, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
+    }
+
+
+    //----------------------------- Clinicians -------------------------------------------
+
+    private JPanel buildCliniciansTab() {
+        JPanel panel = new JPanel(new BorderLayout(8, 8));
+
+        String[] cols = {
+                "Clinician ID", "First Name", "Last Name",
+                "Title", "Speciality", "GMC Number",
+                "Phone", "Email",
+                "Workplace ID", "Workplace Type",
+                "Employment Status", "Start Date"
+        };
+
+        cliniciansTableModel = new DefaultTableModel(cols, 0) {
+            @Override
+            public boolean isCellEditable(int row, int col) { return false; }
+        };
+
+        cliniciansTable = new JTable(cliniciansTableModel);
+        cliniciansTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+
+        panel.add(new JScrollPane(cliniciansTable), BorderLayout.CENTER);
+
+        JPanel bottom = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 10));
+        JButton addBtn = new JButton("Add");
+        JButton removeBtn = new JButton("Remove");
+        JButton modifyBtn = new JButton("Modify");
+        JButton referralBtn = new JButton("Make Referral");
+
+        bottom.add(addBtn);
+        bottom.add(removeBtn);
+        bottom.add(modifyBtn);
+        bottom.add(referralBtn);
+
+        panel.add(bottom, BorderLayout.SOUTH);
+
+        addBtn.addActionListener(e -> handleAddClinician());
+        removeBtn.addActionListener(e -> handleRemoveClinician());
+        modifyBtn.addActionListener(e -> handleModifyClinician());
+        referralBtn.addActionListener(e -> handleMakeReferralFromClinician()); // we’ll implement after
+
+        refreshCliniciansTable();
+
+        return panel;
+    }
+
+    private void refreshCliniciansTable() {
+        controller.reloadClinicians();
+        cliniciansTableModel.setRowCount(0);
+
+        for (Clinician c : controller.getAllClinicians()) {
+            cliniciansTableModel.addRow(clinicianRow(c));
+        }
+
+        statusLabel.setText("Loaded clinicians: " + controller.getAllClinicians().size());
+    }
+
+    private Object[] clinicianRow(Clinician c) {
+        return new Object[]{
+                c.getClinicianID(),
+                c.getFirstName(),
+                c.getLastName(),
+                c.getTitle(),
+                c.getSpeciality(),
+                c.getGmcNumber(),
+                c.getPhoneNumber(),
+                c.getEmail(),
+                c.getWorkplaceID(),
+                c.getWorkplaceType(),
+                c.getClinicianEmploymentStatus(),
+                c.getClinicianStartDate()
+        };
+    }
+
+    private void handleAddClinician() {
+        JPanel form = new JPanel(new GridLayout(11, 2, 6, 6));
+
+        JTextField firstNameField = new JTextField();
+        JTextField lastNameField = new JTextField();
+        JTextField titleField = new JTextField("GP");
+        JTextField specialityField = new JTextField("General Practice");
+        JTextField gmcField = new JTextField();
+        JTextField phoneField = new JTextField();
+        JTextField emailField = new JTextField();
+        JTextField workplaceIdField = new JTextField("S001");
+        JTextField workplaceTypeField = new JTextField("GP Surgery");
+        JTextField employmentField = new JTextField("Full-time");
+        JTextField startDateField = new JTextField("2025-01-01");
+
+        form.add(new JLabel("First Name:")); form.add(firstNameField);
+        form.add(new JLabel("Last Name:")); form.add(lastNameField);
+        form.add(new JLabel("Title:")); form.add(titleField);
+        form.add(new JLabel("Speciality:")); form.add(specialityField);
+        form.add(new JLabel("GMC Number:")); form.add(gmcField);
+        form.add(new JLabel("Phone Number:")); form.add(phoneField);
+        form.add(new JLabel("Email:")); form.add(emailField);
+        form.add(new JLabel("Workplace ID:")); form.add(workplaceIdField);
+        form.add(new JLabel("Workplace Type:")); form.add(workplaceTypeField);
+        form.add(new JLabel("Employment Status:")); form.add(employmentField);
+        form.add(new JLabel("Start Date (YYYY-MM-DD):")); form.add(startDateField);
+
+        int result = JOptionPane.showConfirmDialog(
+                this,
+                form,
+                "Add Clinician",
+                JOptionPane.OK_CANCEL_OPTION,
+                JOptionPane.PLAIN_MESSAGE
+        );
+
+        if (result != JOptionPane.OK_OPTION) return;
+
+        try {
+            // Add this controller method if you haven't:
+            // controller.addClinicianFromForm(...)
+            LocalDate startDate = LocalDate.parse(startDateField.getText().trim());
+            controller.addClinicianFromForm(
+                    firstNameField.getText(),
+                    lastNameField.getText(),
+                    titleField.getText(),
+                    specialityField.getText(),
+                    gmcField.getText(),
+                    phoneField.getText(),
+                    emailField.getText(),
+                    workplaceIdField.getText(),
+                    workplaceTypeField.getText(),
+                    employmentField.getText(),
+                    startDate
+            );
+
+            statusLabel.setText("Added clinician.");
+            refreshCliniciansTable();
+
+        } catch (Exception ex) {
+            statusLabel.setText("Error: " + ex.getMessage());
+            JOptionPane.showMessageDialog(this, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+
+            JOptionPane.showMessageDialog(this,
+                    "Start Date must be in YYYY-MM-DD format",
+                    "Invalid Date",
+                    JOptionPane.ERROR_MESSAGE);
+        }
+
+
+    }
+
+
+    private void handleRemoveClinician() {
+        int row = cliniciansTable.getSelectedRow();
+        if (row == -1) {
+            JOptionPane.showMessageDialog(this, "Select a clinician first.");
+            return;
+        }
+
+        String clinicianID = cliniciansTableModel.getValueAt(row, 0).toString();
+
+        int confirm = JOptionPane.showConfirmDialog(
+                this,
+                "Remove clinician " + clinicianID + "?\n(This will delete the record from clinicians.csv)",
+                "Confirm Remove",
+                JOptionPane.YES_NO_OPTION
+        );
+
+        if (confirm != JOptionPane.YES_OPTION) return;
+
+        try {
+            controller.removeClinician(clinicianID);
+            statusLabel.setText("Removed clinician: " + clinicianID);
+            refreshCliniciansTable();
+        } catch (Exception ex) {
+            statusLabel.setText("Error: " + ex.getMessage());
+            JOptionPane.showMessageDialog(this, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+
+    private void handleModifyClinician() {
+        int row = cliniciansTable.getSelectedRow();
+        if (row == -1) {
+            JOptionPane.showMessageDialog(this, "Select a clinician first.");
+            return;
+        }
+
+        String clinicianID = cliniciansTableModel.getValueAt(row, 0).toString();
+        Clinician c = controller.getClinicianByID(clinicianID);
+
+        if (c == null) {
+            JOptionPane.showMessageDialog(this, "Could not load clinician: " + clinicianID);
+            return;
+        }
+
+        JPanel form = new JPanel(new GridLayout(11, 2, 6, 6));
+
+        JTextField firstNameField = new JTextField(c.getFirstName());
+        JTextField lastNameField = new JTextField(c.getLastName());
+        JTextField titleField = new JTextField(c.getTitle());
+        JTextField specialityField = new JTextField(c.getSpeciality());
+        JTextField gmcField = new JTextField(c.getGmcNumber());
+        JTextField phoneField = new JTextField(c.getPhoneNumber());
+        JTextField emailField = new JTextField(c.getEmail());
+        JTextField workplaceIdField = new JTextField(c.getWorkplaceID());
+        JTextField workplaceTypeField = new JTextField(c.getWorkplaceType());
+        JTextField employmentField = new JTextField(c.getClinicianEmploymentStatus());
+        JTextField startDateField = new JTextField(c.getClinicianStartDate().toString()); // keep as text
+
+        form.add(new JLabel("First Name:")); form.add(firstNameField);
+        form.add(new JLabel("Last Name:")); form.add(lastNameField);
+        form.add(new JLabel("Title:")); form.add(titleField);
+        form.add(new JLabel("Speciality:")); form.add(specialityField);
+        form.add(new JLabel("GMC Number:")); form.add(gmcField);
+        form.add(new JLabel("Phone Number:")); form.add(phoneField);
+        form.add(new JLabel("Email:")); form.add(emailField);
+        form.add(new JLabel("Workplace ID:")); form.add(workplaceIdField);
+        form.add(new JLabel("Workplace Type:")); form.add(workplaceTypeField);
+        form.add(new JLabel("Employment Status:")); form.add(employmentField);
+        form.add(new JLabel("Start Date (YYYY-MM-DD):")); form.add(startDateField);
+
+        int result = JOptionPane.showConfirmDialog(
+                this,
+                form,
+                "Modify Clinician " + clinicianID,
+                JOptionPane.OK_CANCEL_OPTION,
+                JOptionPane.PLAIN_MESSAGE
+        );
+
+        if (result != JOptionPane.OK_OPTION) return;
+
+        try {
+            controller.updateClinicianDetails(
+                    clinicianID,
+                    firstNameField.getText(),
+                    lastNameField.getText(),
+                    phoneField.getText(),
+                    emailField.getText(),
+                    titleField.getText(),
+                    specialityField.getText(),
+                    gmcField.getText(),
+                    workplaceIdField.getText(),
+                    workplaceTypeField.getText(),
+                    employmentField.getText(),
+                    LocalDate.parse(startDateField.getText().trim())
+            );
+
+            statusLabel.setText("Updated clinician: " + clinicianID);
+            refreshCliniciansTable();
+
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this,
+                    "Start Date must be YYYY-MM-DD",
+                    "Invalid Date",
+                    JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+    }
+
+
+    private void handleMakeReferralFromClinician() {
+        JOptionPane.showMessageDialog(this, "Make referral not implemented yet.");
     }
 
 

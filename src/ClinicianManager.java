@@ -1,3 +1,4 @@
+import java.time.LocalDate;
 import java.util.ArrayList;
 
 public class ClinicianManager {
@@ -19,8 +20,7 @@ public class ClinicianManager {
             return;
         }
 
-        // Skip header
-        for (int i = 1; i < lines.size(); i++) {
+        for (int i = 1; i < lines.size(); i++) { // skip header
             String line = lines.get(i).trim();
             if (line.isEmpty()) continue;
 
@@ -33,11 +33,9 @@ public class ClinicianManager {
         return new ArrayList<>(clinicians);
     }
 
-    public Clinician findByClinicianID(String clinicianID) {
+    public Clinician getClinicianByID(String clinicianID) {
         for (Clinician c : clinicians) {
-            if (c.getClinicianID().equals(clinicianID)) {
-                return c;
-            }
+            if (c.getClinicianID().equals(clinicianID)) return c;
         }
         return null;
     }
@@ -52,7 +50,7 @@ public class ClinicianManager {
         return result;
     }
 
-    public ArrayList<Clinician> findByTitle(String title) { // e.g. "GP", "Nurse", "Specialist"
+    public ArrayList<Clinician> findByTitle(String title) {
         ArrayList<Clinician> result = new ArrayList<>();
         for (Clinician c : clinicians) {
             if (c.getTitle().equalsIgnoreCase(title)) {
@@ -60,5 +58,114 @@ public class ClinicianManager {
             }
         }
         return result;
+    }
+
+    // ---------- Persistence + CRUD ----------
+
+    public void saveAll() {
+        ArrayList<String> out = new ArrayList<>();
+
+        // Must match clinicians.csv header exactly
+        out.add("clinician_id,first_name,last_name,title,speciality,gmc_number," +
+                "phone_number,email,workplace_id,workplace_type,employment_status,start_date");
+
+        for (Clinician c : clinicians) {
+            out.add(c.toCSV());
+        }
+
+        CSVHandler.writeLines(filename, out);
+    }
+
+    public void addClinician(Clinician clinician) {
+        clinicians.add(clinician);
+        saveAll();
+    }
+
+    public void removeClinician(String clinicianID) {
+        for (int i = 0; i < clinicians.size(); i++) {
+            if (clinicians.get(i).getClinicianID().equals(clinicianID)) {
+                clinicians.remove(i);
+                saveAll();
+                return;
+            }
+        }
+        throw new IllegalArgumentException("No clinician found with ID: " + clinicianID);
+    }
+
+    public void updateClinicianDetails(
+            String clinicianID,
+            String firstName,
+            String lastName,
+            String phone,
+            String email,
+            String title,
+            String speciality,
+            String gmcNumber,
+            String workplaceID,
+            String workplaceType,
+            String employmentStatus,
+            LocalDate startDate
+    ) {
+        Clinician c = getClinicianByID(clinicianID);
+        if (c == null) throw new IllegalArgumentException("No clinician found with ID: " + clinicianID);
+
+        c.setFirstName(firstName);
+        c.setLastName(lastName);
+        c.setPhoneNumber(phone);
+        c.setEmail(email);
+
+        c.setTitle(title);
+        c.setSpeciality(speciality);
+        c.setGmcNumber(gmcNumber);
+        c.setWorkplaceID(workplaceID);
+        c.setWorkplaceType(workplaceType);
+        c.setClinicianEmploymentStatus(employmentStatus);
+        c.setClinicianStartDate(startDate);
+
+        saveAll();
+    }
+
+    // Optional: auto-generate next clinician ID like C013
+    private String generateNextClinicianID() {
+        int max = 0;
+        for (Clinician c : clinicians) {
+            String id = c.getClinicianID(); // C001
+            if (id != null && id.startsWith("C")) {
+                try {
+                    int num = Integer.parseInt(id.substring(1));
+                    if (num > max) max = num;
+                } catch (NumberFormatException ignored) {}
+            }
+        }
+        return String.format("C%03d", max + 1);
+    }
+
+    // Optional convenience creator (useful for GUI Add)
+    public Clinician createAndAddClinician(
+            String firstName, String lastName,
+            String title, String speciality, String gmcNumber,
+            String phone, String email,
+            String workplaceID, String workplaceType,
+            String employmentStatus, LocalDate startDate
+    ) {
+        String id = generateNextClinicianID();
+
+        Clinician c = new Clinician(
+                id,
+                firstName,
+                lastName,
+                title,
+                speciality,
+                gmcNumber,
+                phone,
+                email,
+                workplaceID,
+                workplaceType,
+                employmentStatus,
+                startDate
+        );
+
+        addClinician(c);
+        return c;
     }
 }

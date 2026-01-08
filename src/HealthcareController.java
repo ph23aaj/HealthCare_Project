@@ -112,5 +112,60 @@ public class HealthcareController {
     }
 
 
+    //------------------------------- Clinicians --------------------------------------
+
+    public void reloadClinicians() {
+        model.getClinicianManager().load();
+    }
+
+    public ArrayList<Clinician> getAllClinicians() {
+        return model.getClinicianManager().getAllClinicians();
+    }
+
+    public Clinician getClinicianByID(String clinicianID) {
+        return model.getClinicianManager().getClinicianByID(clinicianID);
+    }
+
+    public void removeClinician(String clinicianID) {
+        model.getClinicianManager().removeClinician(clinicianID);
+    }
+
+    public void updateClinicianDetails(
+            String clinicianID,
+            String firstName,
+            String lastName,
+            String phone,
+            String email,
+            String title,
+            String speciality,
+            String gmcNumber,
+            String workplaceID,
+            String workplaceType,
+            String employmentStatus,
+            LocalDate startDate
+    ) {
+        model.getClinicianManager().updateClinicianDetails(
+                clinicianID, firstName, lastName, phone, email,
+                title, speciality, gmcNumber,
+                workplaceID, workplaceType, employmentStatus, startDate
+        );
+    }
+
+    public Clinician addClinicianFromForm(
+            String firstName, String lastName,
+            String title, String speciality, String gmcNumber,
+            String phone, String email,
+            String workplaceID, String workplaceType,
+            String employmentStatus, LocalDate startDate
+    ) {
+        return model.getClinicianManager().createAndAddClinician(
+                firstName, lastName, title, speciality, gmcNumber,
+                phone, email, workplaceID, workplaceType, employmentStatus, startDate
+        );
+    }
+
+
+
+
 
 }

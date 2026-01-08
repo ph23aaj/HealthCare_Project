@@ -104,7 +104,7 @@ public class Clinician extends People{
                 escapeCsv(workplaceID),
                 escapeCsv(workplaceType),
                 escapeCsv(clinicianEmploymentStatus),
-                escapeCsv(String.valueOf(clinicianStartDate))
+                escapeCsv(clinicianStartDate.toString())
 
         );
     }
@@ -131,7 +131,7 @@ public class Clinician extends People{
                 c[8],  // workplaceID
                 c[9],  // workplaceType
                 c[10], // employmentStatus
-                LocalDate.parse(c[11])  // startDate
+                LocalDate.parse(c[11].trim())  // startDate
         );
     }
 

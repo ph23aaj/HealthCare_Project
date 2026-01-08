@@ -12,7 +12,7 @@ public class Test {
 
         System.out.println("Loaded clinicians: " + cm.getAllClinicians().size());
 
-        Clinician c1 = cm.findByClinicianID("C001");
+        Clinician c1 = cm.getClinicianByID("C001");
         System.out.println("C001: " + c1);
 
         System.out.println("GP clinicians count: " + cm.findByTitle("GP").size());
