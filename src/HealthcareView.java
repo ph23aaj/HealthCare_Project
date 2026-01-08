@@ -102,7 +102,10 @@ public class HealthcareView extends JFrame {
         JButton addBtn = new JButton("Add Appointment");
         JButton cancelBtn = new JButton("Cancel Appointment");
         JButton modifyBtn = new JButton("Modify Appointment");
+        JButton deleteBtn = new JButton("Delete Appointment");
 
+
+        bottom.add(deleteBtn);
         bottom.add(addBtn);
         bottom.add(cancelBtn);
         bottom.add(modifyBtn);
@@ -113,6 +116,7 @@ public class HealthcareView extends JFrame {
         addBtn.addActionListener(e -> handleAddAppointment());
         cancelBtn.addActionListener(e -> handleCancelAppointment());
         modifyBtn.addActionListener(e -> handleModifyAppointment());
+        deleteBtn.addActionListener(e -> handleDeleteAppointment());
 
         // Load table data initially
         refreshAppointmentsTable();
@@ -273,6 +277,35 @@ public class HealthcareView extends JFrame {
             JOptionPane.showMessageDialog(this, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
+
+    private void handleDeleteAppointment() {
+        int row = appointmentsTable.getSelectedRow();
+        if (row == -1) {
+            JOptionPane.showMessageDialog(this, "Select an appointment first.");
+            return;
+        }
+
+        String appointmentID = appointmentsTableModel.getValueAt(row, 0).toString();
+
+        int confirm = JOptionPane.showConfirmDialog(
+                this,
+                "Delete appointment " + appointmentID + "?\n(This will remove it from appointments.csv)",
+                "Confirm Delete",
+                JOptionPane.YES_NO_OPTION
+        );
+
+        if (confirm != JOptionPane.YES_OPTION) return;
+
+        try {
+            controller.deleteAppointment(appointmentID);
+            statusLabel.setText("Deleted appointment: " + appointmentID);
+            refreshAppointmentsTable();
+        } catch (Exception ex) {
+            statusLabel.setText("Error: " + ex.getMessage());
+            JOptionPane.showMessageDialog(this, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
 
     //----------------------------- Patients ---------------------------
 

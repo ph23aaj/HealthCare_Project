@@ -53,7 +53,6 @@ public class Test {
         System.out.println("Appointments before: " + am.getAllAppointments().size());
 
 
-
 //        Appointment booked = am.bookAppointment(
 //                "1234567890",
 //                LocalDate.parse("2025-09-20"),
@@ -77,44 +76,37 @@ public class Test {
 
         // Test Delete Appointment
 
-
-
-        System.out.println("Before: " + am.getAllAppointments().size());
-
-
-
-        am.load(); // reload from file to confirm persistence
-        System.out.println("After: " + am.getAllAppointments().size());
-
-
-
-
-        ReferralManager rm = ReferralManager.getInstance();
-        rm.setFilename("referrals.csv");
-        System.out.println("Using referrals file: " + new java.io.File("referrals.csv").getAbsolutePath());
-
-        rm.load();
-
-        int before = rm.getAllReferrals().size();
-        System.out.println("Before create, count = " + before);
-
-        LocalDate referralDate = LocalDate.now();
-
-        Referral created = rm.createReferral(
-                "P001",
-                "C001",
-                "C005",
-                "S001",
-                "H001",
-                referralDate,
-                "Routine",
-                "Referral reason test",
-                "Clinical summary test (created by test)",
-                "ECG|Echo",
-                "Notes created by TestReferralCreate"
-        );
-
-        System.out.println("Created referral: " + created.getReferralID());
-        
-    }
+//        System.out.println("Before: " + am.getAllAppointments().size());
+//
+//        am.load(); // reload from file to confirm persistence
+//        System.out.println("After: " + am.getAllAppointments().size());
+//
+//        ReferralManager rm = ReferralManager.getInstance();
+//        rm.setFilename("referrals.csv");
+//        System.out.println("Using referrals file: " + new java.io.File("referrals.csv").getAbsolutePath());
+//
+//        rm.load();
+//
+//        int before = rm.getAllReferrals().size();
+//        System.out.println("Before create, count = " + before);
+//
+//        LocalDate referralDate = LocalDate.now();
+//
+//        Referral created = rm.createReferral(
+//                "P001",
+//                "C001",
+//                "C005",
+//                "S001",
+//                "H001",
+//                referralDate,
+//                "Routine",
+//                "Referral reason test",
+//                "Clinical summary test (created by test)",
+//                "ECG|Echo",
+//                "Notes created by TestReferralCreate"
+//        );
+//
+//        System.out.println("Created referral: " + created.getReferralID());
+//
+   }
 }
