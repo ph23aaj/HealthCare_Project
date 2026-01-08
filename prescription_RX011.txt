@@ -1,6 +1,5 @@
-=== PRESCRIPTION (SIMULATED OUTPUT) ===
 Prescription ID: RX011
-Status: Collected
+Status: Issued
 
 Patient ID: P001
 Clinician ID: C001
@@ -8,16 +7,15 @@ Appointment ID:
 
 Prescription Date: 2026-01-08
 Issue Date: 2026-01-08
-Collection Date: 2026-01-08
+Collection Date: null
 
-Medication: wdwd
-Dosage: wdwd
-Frequency: wdw
-Duration Days: 2
-Quantity: 1
+Medication: fef
+Dosage: fefef
+Frequency: fefe
+Duration Days: 3
+Quantity: fe
 
 Instructions:
-wd
+fee
 
-Pharmacy: dw
-=== END ===
+Pharmacy: fefe

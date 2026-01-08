@@ -5,7 +5,6 @@ public class PrescriptionTextWriter {
     public static void writePrescriptionText(Prescription p) {
         ArrayList<String> lines = new ArrayList<>();
 
-        lines.add("=== PRESCRIPTION (SIMULATED OUTPUT) ===");
         lines.add("Prescription ID: " + p.getPrescriptionID());
         lines.add("Status: " + p.getStatus());
         lines.add("");
@@ -32,7 +31,6 @@ public class PrescriptionTextWriter {
         lines.add("");
 
         lines.add("Pharmacy: " + p.getPharmacyName());
-        lines.add("=== END ===");
 
         String file = "prescription_" + p.getPrescriptionID() + ".txt";
         CSVHandler.writeLines(file, lines);

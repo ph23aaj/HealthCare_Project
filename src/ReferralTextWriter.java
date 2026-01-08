@@ -5,7 +5,6 @@ public class ReferralTextWriter {
     public static void writeReferralEmail(Referral r) {
         ArrayList<String> lines = new ArrayList<>();
 
-        lines.add("=== REFERRAL EMAIL ===");
         lines.add("Referral ID: " + r.getReferralID());
         lines.add("Status: " + r.getReferralStatus());
         lines.add("Created: " + r.getReferralCreated());

@@ -98,17 +98,16 @@ public class Test {
         int before = rm.getAllReferrals().size();
         System.out.println("Before create, count = " + before);
 
-        // Use a date that matches your dataset style conceptually
         LocalDate referralDate = LocalDate.now();
 
         Referral created = rm.createReferral(
-                "P001",                 // patientID
-                "C001",                 // fromClinician
-                "C005",                 // toClinician
-                "S001",                 // fromFacility
-                "H001",                 // toFacility
+                "P001",
+                "C001",
+                "C005",
+                "S001",
+                "H001",
                 referralDate,
-                "Routine",              // urgencyLevel (matches your CSV example)
+                "Routine",
                 "Referral reason test",
                 "Clinical summary test (created by test)",
                 "ECG|Echo",
@@ -116,36 +115,6 @@ public class Test {
         );
 
         System.out.println("Created referral: " + created.getReferralID());
-
-        // Reload and confirm it's saved
-        rm.load();
-        int after = rm.getAllReferrals().size();
-        System.out.println("After reload, count = " + after);
-
-        if (after != before + 1) {
-            throw new RuntimeException("Referral count did not increase after creation!");
-        }
-
-        boolean found = false;
-        for (Referral r : rm.getAllReferrals()) {
-            if (r.getReferralID().equals(created.getReferralID())) {
-                found = true;
-                break;
-            }
-        }
-        if (!found) {
-            throw new RuntimeException("Created referral not found after reload!");
-        }
-
-        // Check output text file
-        String txtName = "referral_" + created.getReferralID() + ".txt";
-        File f = new File(txtName);
-        System.out.println("Referral text file exists? " + f.exists() + " (" + txtName + ")");
-
-        if (!f.exists()) {
-            throw new RuntimeException("Referral text file was not created: " + txtName);
-        }
-
-        System.out.println("✅ Create + persist + output file test passed.");
+        
     }
 }

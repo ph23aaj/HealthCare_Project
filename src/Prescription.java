@@ -190,7 +190,7 @@ public class Prescription {
         if (text == null) return null;
         String t = text.trim();
         if (t.isEmpty()) return null;
-        return LocalDate.parse(t); // ISO yyyy-MM-dd
+        return LocalDate.parse(t); // yyyy-MM-dd
     }
 
     private static String fmtDateOrEmpty(LocalDate d) {

@@ -1,12 +1,11 @@
-=== REFERRAL EMAIL ===
 Referral ID: R011
-Status: In Progress
+Status: New
 Created: 2026-01-08
 Last Updated: 2026-01-08
 
-From Clinician: C004
+From Clinician: C001
 To Clinician: C005
-From Facility: S003
+From Facility: S001
 To Facility: H001
 
 Patient ID: P001
@@ -14,14 +13,14 @@ Referral Date: 2026-01-08
 Urgency Level: Routine
 
 Reason for Referral:
-wwd
+fef
 
 Clinical Summary:
-dwdw
+efe
 
 Requested Investigations:
-dwdwd
+efe
 
 Referral Notes:
-dwdw
+fefe
 

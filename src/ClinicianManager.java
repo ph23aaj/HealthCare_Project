@@ -65,7 +65,6 @@ public class ClinicianManager {
     public void saveAll() {
         ArrayList<String> out = new ArrayList<>();
 
-        // Must match clinicians.csv header exactly
         out.add("clinician_id,first_name,last_name,title,speciality,gmc_number," +
                 "phone_number,email,workplace_id,workplace_type,employment_status,start_date");
 
@@ -125,11 +124,11 @@ public class ClinicianManager {
         saveAll();
     }
 
-    // Optional: auto-generate next clinician ID like C013
+    // Auto-generate next clinician ID
     private String generateNextClinicianID() {
         int max = 0;
         for (Clinician c : clinicians) {
-            String id = c.getClinicianID(); // C001
+            String id = c.getClinicianID();
             if (id != null && id.startsWith("C")) {
                 try {
                     int num = Integer.parseInt(id.substring(1));
@@ -140,7 +139,6 @@ public class ClinicianManager {
         return String.format("C%03d", max + 1);
     }
 
-    // Optional convenience creator (useful for GUI Add)
     public Clinician createAndAddClinician(
             String firstName, String lastName,
             String title, String speciality, String gmcNumber,

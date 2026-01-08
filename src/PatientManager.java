@@ -22,7 +22,7 @@ public class PatientManager {
             return;
         }
 
-        // Skip header (line 0)
+        // Skip header
         for (int i = 1; i < lines.size(); i++) {
             String line = lines.get(i).trim();
             if (line.isEmpty()) continue;
@@ -71,7 +71,7 @@ public class PatientManager {
         int max = 0;
 
         for (Patient p : patients) {
-            String id = p.getPatientID(); // e.g. "P001"
+            String id = p.getPatientID();
             if (id != null && id.startsWith("P")) {
                 try {
                     int num = Integer.parseInt(id.substring(1));
@@ -134,9 +134,6 @@ public class PatientManager {
             String gpSurgeryID
     ) {
         validateNhsNumber(nhsNumber);
-        validatePhoneNumber(phone);
-        validatePhoneNumber(emergencyPhone); // same rule applies
-        validateEmail(email);
 
         // Validate NHS uniqueness
         if (findByNhsNumber(nhsNumber) != null) {
@@ -180,18 +177,6 @@ public class PatientManager {
     private void validateNhsNumber(String nhsNumber) {
         if (nhsNumber == null || !nhsNumber.matches("\\d{10}")) {
             throw new IllegalArgumentException("NHS number must be exactly 10 digits.");
-        }
-    }
-
-    private void validatePhoneNumber(String phone) {
-        if (phone == null || !phone.matches("\\d{11}")) {
-            throw new IllegalArgumentException("Phone number must be exactly 11 digits.");
-        }
-    }
-
-    private void validateEmail(String email) {
-        if (email == null || !email.contains("@")) {
-            throw new IllegalArgumentException("Email address must contain '@'.");
         }
     }
 

@@ -42,6 +42,17 @@ public class ReferralManager {
         return new ArrayList<>(referrals);
     }
 
+    public ArrayList<Referral> getReferralsByPatientID(String patientID) {
+        ArrayList<Referral> out = new ArrayList<>();
+        for (Referral r : referrals) {
+            if (r.getPatientID() != null && r.getPatientID().equals(patientID)) {
+                out.add(r);
+            }
+        }
+        return out;
+    }
+
+
     public void saveAll() {
         ArrayList<String> out = new ArrayList<>();
 
@@ -64,7 +75,7 @@ public class ReferralManager {
         int max = 0;
 
         for (Referral r : referrals) {
-            String id = r.getReferralID(); // e.g. R001
+            String id = r.getReferralID();
             if (id != null && id.startsWith("R")) {
                 try {
                     int num = Integer.parseInt(id.substring(1));
@@ -131,7 +142,7 @@ public class ReferralManager {
                 r.setReferralStatus(newStatus);
                 r.setReferralLastUpdated(LocalDate.now());
                 saveAll();
-                // optional: regenerate the text file to reflect the updated status
+                // regenerates the text file to reflect the updated status
                 ReferralTextWriter.writeReferralEmail(r);
                 return;
             }

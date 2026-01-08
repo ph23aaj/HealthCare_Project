@@ -15,7 +15,6 @@ public class AppointmentManager {
     public void saveAll() {
         ArrayList<String> out = new ArrayList<>();
 
-        // Header must match appointments.csv exactly
         out.add(
                 "appointment_id,patient_id,clinician_id,facility_id," +
                         "appointment_date,appointment_time,duration_minutes," +
@@ -98,7 +97,7 @@ public class AppointmentManager {
         int max = 0;
 
         for (Appointment a : appointments) {
-            String id = a.getAppointmentID(); // e.g. "A001"
+            String id = a.getAppointmentID();
             if (id != null && id.startsWith("A")) {
                 try {
                     int num = Integer.parseInt(id.substring(1));
@@ -110,7 +109,7 @@ public class AppointmentManager {
         }
 
         int next = max + 1;
-        return String.format("A%03d", next); // A001, A002, ...
+        return String.format("A%03d", next);
     }
 
 
@@ -130,7 +129,7 @@ public class AppointmentManager {
             throw new IllegalArgumentException("No patient found with NHS number: " + nhsNumber);
         }
 
-        // Find first available clinician (you can filter by title if you want)
+        // Find first available clinician
         Clinician chosen = null;
         for (Clinician c : clinicianManager.getAllClinicians()) {
             if (isClinicianAvailable(c.getClinicianID(), date, time)) {
@@ -164,7 +163,7 @@ public class AppointmentManager {
                 LocalDate.now()
         );
 
-        // 4) Save to in-memory list + persist
+        // Save to in-memory list + persist
         appointments.add(newAppointment);
         saveAll();
 
@@ -178,7 +177,6 @@ public class AppointmentManager {
             throw new IllegalArgumentException("No appointment found with ID: " + appointmentID);
         }
 
-        // If you want to prevent double-cancel:
         if (a.getStatus() == AppointmentStatus.CANCELLED) {
             throw new IllegalStateException("Appointment already cancelled: " + appointmentID);
         }

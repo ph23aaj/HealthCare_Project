@@ -148,7 +148,7 @@ public class Appointment {
                 clinicianID,
                 facilityID,
                 appointmentDate.toString(),
-                appointmentTime.toString(), // "09:00"
+                appointmentTime.toString(),
                 String.valueOf(durationMinutes),
                 escapeCsv(type.toString()),
                 escapeCsv(status.toString()),

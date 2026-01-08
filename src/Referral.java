@@ -237,22 +237,22 @@ public class Referral {
             }
 
             return new Referral(
-                    c[0],                          // referral_id
-                    c[1],                          // patient_id
-                    c[2],                          // referring_clinician_id
-                    c[3],                          // referred_to_clinician_id
-                    c[4],                          // referring_facility_id
-                    c[5],                          // referred_to_facility_id
+                    c[0],                          // referral id
+                    c[1],                          // patient id
+                    c[2],                          // referring clinician id
+                    c[3],                          // referred to clinician id
+                    c[4],                          // referring facility id
+                    c[5],                          // referred to facility id
                     LocalDate.parse(c[6].trim(), REF_DATE_FMT),         // referral_date
-                    c[7],                          // urgency_level
-                    c[8],                          // referral_reason
-                    c[9],                          // clinical_summary
-                    c[10],                         // requested_investigations
+                    c[7],                          // urgency level
+                    c[8],                          // referral reason
+                    c[9],                          // clinical summary
+                    c[10],                         // requested investigations
                     ReferralStatus.fromString(c[11]), // status
-                    c[12],                         // appointment_id
+                    c[12],                         // appointment id
                     c[13],                         // notes
-                    LocalDate.parse(c[14].trim(), REF_DATE_FMT),        // created_date
-                    LocalDate.parse(c[15].trim(), REF_DATE_FMT)         // last_updated
+                    LocalDate.parse(c[14].trim(), REF_DATE_FMT),        // created date
+                    LocalDate.parse(c[15].trim(), REF_DATE_FMT)         // last updated
             );
 
         } catch (Exception e) {

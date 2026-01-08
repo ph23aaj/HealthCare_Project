@@ -110,7 +110,7 @@ public class Clinician extends People{
     }
 
     public static Clinician fromCSV(String csvLine) {
-        String[] c = CSVHandler.parseCsvLine(csvLine); // IMPORTANT: not split(",")
+        String[] c = CSVHandler.parseCsvLine(csvLine);
 
         if (c.length != 12) {
             throw new IllegalArgumentException("Invalid clinician row: expected 12 columns, got " + c.length);

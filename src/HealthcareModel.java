@@ -4,6 +4,7 @@ public class HealthcareModel {
     private final ClinicianManager clinicianManager;
     private final AppointmentManager appointmentManager;
     private final PrescriptionManager prescriptionManager;
+    private final EHRService ehrService = new EHRService();
 
     public HealthcareModel() {
         patientManager = new PatientManager("patients.csv");
@@ -24,5 +25,5 @@ public class HealthcareModel {
     public ClinicianManager getClinicianManager() { return clinicianManager; }
     public AppointmentManager getAppointmentManager() { return appointmentManager; }
     public PrescriptionManager getPrescriptionManager() {return prescriptionManager;}
-
+    public EHRService getEhrService() { return ehrService; }
 }

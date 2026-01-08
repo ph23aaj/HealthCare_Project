@@ -191,7 +191,7 @@ public class HealthcareController {
             String notes
     ) {
         ReferralManager rm = ReferralManager.getInstance();
-        rm.setFilename("referrals.csv"); // change if you store in /data
+        rm.setFilename("referrals.csv");
         rm.load();
         return rm.createReferral(
                 patientID,
@@ -267,6 +267,25 @@ public class HealthcareController {
     public void markPrescriptionCollected(String prescriptionID, LocalDate collectionDate) {
         model.getPrescriptionManager().markCollected(prescriptionID, collectionDate);
     }
+
+    //-------------------------- Electronic Health Record -----------------------------
+
+    public String buildEHRForPatient(String patientID) {
+        Patient patient = model.getPatientManager().getPatientByID(patientID);
+        if (patient == null) throw new IllegalArgumentException("No patient found: " + patientID);
+
+        ReferralManager rm = ReferralManager.getInstance();
+        rm.setFilename("referrals.csv");
+        rm.load();
+
+        model.getPrescriptionManager().load();
+
+        var referrals = rm.getReferralsByPatientID(patientID);
+        var prescriptions = model.getPrescriptionManager().getPrescriptionsByPatientID(patientID);
+
+        return model.getEhrService().buildEHRText(patient, referrals, prescriptions);
+    }
+
 
 
 }

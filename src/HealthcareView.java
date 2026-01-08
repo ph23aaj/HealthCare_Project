@@ -28,6 +28,9 @@ public class HealthcareView extends JFrame {
     private javax.swing.table.DefaultTableModel referralsTableModel;
     private JTable prescriptionsTable;
     private javax.swing.table.DefaultTableModel prescriptionsTableModel;
+    private JComboBox<String> ehrPatientBox;
+    private JTextArea ehrTextArea;
+
 
 
 
@@ -57,6 +60,8 @@ public class HealthcareView extends JFrame {
         tabs.add("Clinicians", buildCliniciansTab());
         tabs.add("Referrals", buildReferralsTab());
         tabs.add("Prescriptions", buildPrescriptionsTab());
+        tabs.add("EHR", buildEHRTab());
+
 
         add(tabs, BorderLayout.CENTER);
 
@@ -82,7 +87,7 @@ public class HealthcareView extends JFrame {
         appointmentsTableModel = new DefaultTableModel(cols, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
-                return false; // read-only table
+                return false;
             }
         };
 
@@ -117,7 +122,7 @@ public class HealthcareView extends JFrame {
 
 
     private void refreshAppointmentsTable() {
-        // Reload from CSV so the table always shows real persisted data
+        // Reload from CSV
         controller.reloadAppointments();
 
         // Clear table
@@ -274,7 +279,7 @@ public class HealthcareView extends JFrame {
     private JPanel buildPatientsTab() {
         JPanel panel = new JPanel(new BorderLayout(8, 8));
 
-        // ---- Table columns (include Address!) ----
+        // ---- Table columns ----
         String[] cols = {
                 "Patient ID", "First Name", "Last Name", "NHS Number",
                 "DOB", "Gender", "Phone", "Email",
@@ -308,7 +313,7 @@ public class HealthcareView extends JFrame {
         panel.add(bottom, BorderLayout.SOUTH);
 
         // ---- Actions ----
-        addBtn.addActionListener(e -> handleAddPatient());      // we’ll stub this next
+        addBtn.addActionListener(e -> handleAddPatient());
         removeBtn.addActionListener(e -> handleRemovePatient());
         modifyBtn.addActionListener(e -> handleModifyPatient());
 
@@ -333,7 +338,7 @@ public class HealthcareView extends JFrame {
                 p.getFirstName(),
                 p.getLastName(),
                 p.getNhsNumber(),
-                fmtDate(p.getDateOfBirth()), // if Date, prints; you can format later
+                fmtDate(p.getDateOfBirth()),
                 p.getGender().name(),
                 p.getPhoneNumber(),
                 p.getEmail(),
@@ -392,7 +397,7 @@ public class HealthcareView extends JFrame {
             return;
         }
 
-        // Build one dialog panel (no new class)
+        // Build dialog panel
         JPanel form = new JPanel(new GridLayout(8, 2, 6, 6));
 
         JTextField firstNameField = new JTextField(p.getFirstName());
@@ -452,7 +457,7 @@ public class HealthcareView extends JFrame {
 
             JTextField firstNameField = new JTextField();
             JTextField lastNameField = new JTextField();
-            JTextField dobField = new JTextField("1985-03-15"); // helpful example format
+            JTextField dobField = new JTextField();
             JTextField nhsField = new JTextField();
             JComboBox<PatientGender> genderBox = new JComboBox<>(PatientGender.values());
             JTextField phoneField = new JTextField();
@@ -461,7 +466,7 @@ public class HealthcareView extends JFrame {
             JTextField postcodeField = new JTextField();
             JTextField emergencyNameField = new JTextField();
             JTextField emergencyPhoneField = new JTextField();
-            JTextField gpSurgeryField = new JTextField("S001"); // default example
+            JTextField gpSurgeryField = new JTextField();
 
             form.add(new JLabel("First Name:")); form.add(firstNameField);
             form.add(new JLabel("Last Name:")); form.add(lastNameField);
@@ -475,6 +480,7 @@ public class HealthcareView extends JFrame {
             form.add(new JLabel("Emergency Contact Name:")); form.add(emergencyNameField);
             form.add(new JLabel("Emergency Contact Phone:")); form.add(emergencyPhoneField);
             form.add(new JLabel("GP Surgery ID:")); form.add(gpSurgeryField);
+
 
             int result = JOptionPane.showConfirmDialog(
                     this,
@@ -550,7 +556,7 @@ public class HealthcareView extends JFrame {
         addBtn.addActionListener(e -> handleAddClinician());
         removeBtn.addActionListener(e -> handleRemoveClinician());
         modifyBtn.addActionListener(e -> handleModifyClinician());
-        referralBtn.addActionListener(e -> handleMakeReferralFromClinician()); // we’ll implement after
+        referralBtn.addActionListener(e -> handleMakeReferralFromClinician());
 
         refreshCliniciansTable();
 
@@ -589,15 +595,15 @@ public class HealthcareView extends JFrame {
 
         JTextField firstNameField = new JTextField();
         JTextField lastNameField = new JTextField();
-        JTextField titleField = new JTextField("GP");
-        JTextField specialityField = new JTextField("General Practice");
+        JTextField titleField = new JTextField();
+        JTextField specialityField = new JTextField();
         JTextField gmcField = new JTextField();
         JTextField phoneField = new JTextField();
         JTextField emailField = new JTextField();
-        JTextField workplaceIdField = new JTextField("S001");
-        JTextField workplaceTypeField = new JTextField("GP Surgery");
-        JTextField employmentField = new JTextField("Full-time");
-        JTextField startDateField = new JTextField("2025-01-01");
+        JTextField workplaceIdField = new JTextField();
+        JTextField workplaceTypeField = new JTextField();
+        JTextField employmentField = new JTextField();
+        JTextField startDateField = new JTextField();
 
         form.add(new JLabel("First Name:")); form.add(firstNameField);
         form.add(new JLabel("Last Name:")); form.add(lastNameField);
@@ -622,8 +628,6 @@ public class HealthcareView extends JFrame {
         if (result != JOptionPane.OK_OPTION) return;
 
         try {
-            // Add this controller method if you haven't:
-            // controller.addClinicianFromForm(...)
             LocalDate startDate = LocalDate.parse(startDateField.getText().trim());
             controller.addClinicianFromForm(
                     firstNameField.getText(),
@@ -712,7 +716,7 @@ public class HealthcareView extends JFrame {
         JTextField workplaceIdField = new JTextField(c.getWorkplaceID());
         JTextField workplaceTypeField = new JTextField(c.getWorkplaceType());
         JTextField employmentField = new JTextField(c.getClinicianEmploymentStatus());
-        JTextField startDateField = new JTextField(c.getClinicianStartDate().toString()); // keep as text
+        JTextField startDateField = new JTextField(c.getClinicianStartDate().toString());
 
         form.add(new JLabel("First Name:")); form.add(firstNameField);
         form.add(new JLabel("Last Name:")); form.add(lastNameField);
@@ -782,7 +786,6 @@ public class HealthcareView extends JFrame {
             return;
         }
 
-        // Rule: only GP Surgery clinicians can refer
         if (fromClinician.getWorkplaceType() == null ||
                 !fromClinician.getWorkplaceType().equalsIgnoreCase("GP Surgery")) {
             JOptionPane.showMessageDialog(
@@ -899,15 +902,15 @@ public class HealthcareView extends JFrame {
 
         if (result != JOptionPane.OK_OPTION) return;
 
-        // Extract selected patientID from label "P001 - Name"
+        // Extract selected patientID from label
         String patientLabel = (String) patientBox.getSelectedItem();
         String patientID = patientLabel.split(" - ")[0].trim();
 
-        // Extract toClinicianID from label "C005 - ..."
+        // Extract toClinicianID from label
         String toClinicianLabel = (String) toClinicianBox.getSelectedItem();
         String toClinicianID = toClinicianLabel.split(" - ")[0].trim();
 
-        // Find the selected hospital clinician object (to get toFacilityID)
+        // Find the selected hospital clinician object to get toFacilityID
         Clinician toClinician = null;
         for (Clinician c : hospitalClinicians) {
             if (c.getClinicianID().equals(toClinicianID)) {
@@ -924,7 +927,7 @@ public class HealthcareView extends JFrame {
         String fromFacilityID = fromClinician.getWorkplaceID();
         String toFacilityID = toClinician.getWorkplaceID();
 
-        // Parse date (ISO)
+        // Parse date
         LocalDate referralDate;
         try {
             referralDate = LocalDate.parse(referralDateField.getText().trim());
@@ -1023,7 +1026,7 @@ public class HealthcareView extends JFrame {
                 r.getReasonForReferral(),
                 r.getClinicalSummary(),
                 r.getRequestedInvestigations(),
-                r.getReferralStatus(),       // will display enum’s toString()
+                r.getReferralStatus(),
                 r.getAppointmentID(),
                 r.getReferralNotes(),
                 r.getReferralCreated(),
@@ -1202,13 +1205,13 @@ public class HealthcareView extends JFrame {
         String id = prescriptionsTableModel.getValueAt(row, 0).toString();
         String currentStatus = prescriptionsTableModel.getValueAt(row, 12).toString();
 
-        // Only allow Issued -> Collected
+        // Only allow Issued to Collected
         if ("Collected".equalsIgnoreCase(currentStatus.trim())) {
             JOptionPane.showMessageDialog(this, "This prescription is already marked as Collected.");
             return;
         }
 
-        JTextField dateField = new JTextField(LocalDate.now().toString()); // YYYY-MM-DD
+        JTextField dateField = new JTextField(LocalDate.now().toString());
 
         JPanel form = new JPanel(new GridLayout(1, 2, 6, 6));
         form.add(new JLabel("Collection Date (YYYY-MM-DD):"));
@@ -1266,7 +1269,7 @@ public class HealthcareView extends JFrame {
             clinicianBox.addItem(c.getClinicianID() + " - " + c.getTitle() + " " + c.getFirstName() + " " + c.getLastName());
         }
 
-        JTextField appointmentIdField = new JTextField(); // can be blank if not tied to appointment
+        JTextField appointmentIdField = new JTextField();
         JTextField prescriptionDateField = new JTextField(LocalDate.now().toString());
 
         JTextField medicationField = new JTextField();
@@ -1320,7 +1323,7 @@ public class HealthcareView extends JFrame {
         String clinicianID = ((String) clinicianBox.getSelectedItem()).split(" - ")[0].trim();
         String appointmentID = appointmentIdField.getText().trim();
 
-        // --- Validation: required fields ---
+        // --- Validation ---
         if (medicationField.getText().trim().isEmpty()
                 || dosageField.getText().trim().isEmpty()
                 || frequencyField.getText().trim().isEmpty()
@@ -1385,6 +1388,78 @@ public class HealthcareView extends JFrame {
         }
     }
 
+//----------------------------- Electronic Health Record ------------------------------------
+
+    private JPanel buildEHRTab() {
+        JPanel panel = new JPanel(new BorderLayout(8, 8));
+
+        // Top: patient selector + view button
+        JPanel top = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10));
+        top.add(new JLabel("Select patient:"));
+
+        ehrPatientBox = new JComboBox<>();
+        JButton viewBtn = new JButton("View EHR");
+
+        top.add(ehrPatientBox);
+        top.add(viewBtn);
+
+        panel.add(top, BorderLayout.NORTH);
+
+        // Centre: big text area
+        ehrTextArea = new JTextArea();
+        ehrTextArea.setEditable(false);
+        ehrTextArea.setLineWrap(true);
+        ehrTextArea.setWrapStyleWord(true);
+        ehrTextArea.setFont(new Font("Monospaced", Font.PLAIN, 12));
+
+        panel.add(new JScrollPane(ehrTextArea), BorderLayout.CENTER);
+
+        // Load patients into dropdown
+        refreshEHRPatientDropdown();
+
+        // Button action
+        viewBtn.addActionListener(e -> handleViewEHR());
+
+        return panel;
+    }
+
+
+    private void refreshEHRPatientDropdown() {
+        ehrPatientBox.removeAllItems();
+
+        // Ensure patients are loaded
+        controller.reloadPatients();
+        ArrayList<Patient> patients = controller.getAllPatients();
+
+        for (Patient p : patients) {
+            ehrPatientBox.addItem(p.getPatientID() + " - " + p.getFirstName() + " " + p.getLastName());
+        }
+
+        if (patients.isEmpty()) {
+            ehrPatientBox.addItem("(No patients loaded)");
+        }
+    }
+
+
+    private void handleViewEHR() {
+        String selected = (String) ehrPatientBox.getSelectedItem();
+        if (selected == null || selected.startsWith("(No patients")) {
+            JOptionPane.showMessageDialog(this, "No patient available.");
+            return;
+        }
+
+        String patientID = selected.split(" - ")[0].trim();
+
+        try {
+            String ehrText = controller.buildEHRForPatient(patientID);
+            ehrTextArea.setText(ehrText);
+            ehrTextArea.setCaretPosition(0);
+            statusLabel.setText("Displayed EHR for " + patientID);
+        } catch (Exception ex) {
+            statusLabel.setText("Error: " + ex.getMessage());
+            JOptionPane.showMessageDialog(this, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
 
 
 

@@ -48,12 +48,20 @@ public class PrescriptionManager {
         return null;
     }
 
+    public ArrayList<Prescription> getPrescriptionsByPatientID(String patientID) {
+        ArrayList<Prescription> out = new ArrayList<>();
+        for (Prescription p : prescriptions) {
+            if (p.getPatientID().equals(patientID)) out.add(p);
+        }
+        return out;
+    }
+
+
     private String generateNextPrescriptionID() {
         int max = 0;
         for (Prescription p : prescriptions) {
-            String id = p.getPrescriptionID(); // e.g. RX001 or P001? (depends on your file)
+            String id = p.getPrescriptionID(); // e.g. RX001 or P001
             if (id != null) {
-                // Try common patterns: "RX001" or "PR001"
                 String digits = id.replaceAll("\\D+", "");
                 if (!digits.isEmpty()) {
                     try {
@@ -95,7 +103,7 @@ public class PrescriptionManager {
                 quantity,
                 instructions,
                 pharmacyName,
-                "Issued",       // fixed on create (your requirement)
+                "Issued",
                 now,            // issue_date
                 null            // collection_date optional
         );
