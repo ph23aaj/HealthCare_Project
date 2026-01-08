@@ -24,6 +24,9 @@ public class HealthcareView extends JFrame {
     private static final SimpleDateFormat DATE_FMT = new SimpleDateFormat("yyyy-MM-dd");
     private JTable cliniciansTable;
     private javax.swing.table.DefaultTableModel cliniciansTableModel;
+    private JTable referralsTable;
+    private javax.swing.table.DefaultTableModel referralsTableModel;
+
 
 
 
@@ -49,6 +52,7 @@ public class HealthcareView extends JFrame {
         tabs.add("Patients", buildPatientsTab());
         tabs.add("Appointments", buildAppointmentsTab());
         tabs.add("Clinicians", buildCliniciansTab());
+        tabs.add("Referrals", buildReferralsTab());
         add(tabs, BorderLayout.CENTER);
 
 
@@ -759,9 +763,336 @@ public class HealthcareView extends JFrame {
     }
 
 
+    //------------------------------------ Referrals ----------------------------------
+
     private void handleMakeReferralFromClinician() {
-        JOptionPane.showMessageDialog(this, "Make referral not implemented yet.");
+        int row = cliniciansTable.getSelectedRow();
+        if (row == -1) {
+            JOptionPane.showMessageDialog(this, "Select a clinician first.");
+            return;
+        }
+
+        String fromClinicianID = cliniciansTableModel.getValueAt(row, 0).toString();
+        Clinician fromClinician = controller.getClinicianByID(fromClinicianID);
+
+        if (fromClinician == null) {
+            JOptionPane.showMessageDialog(this, "Could not load selected clinician: " + fromClinicianID);
+            return;
+        }
+
+        // Rule: only GP Surgery clinicians can refer
+        if (fromClinician.getWorkplaceType() == null ||
+                !fromClinician.getWorkplaceType().equalsIgnoreCase("GP Surgery")) {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Only clinicians working at a 'GP Surgery' can make referrals.\n" +
+                            "Selected clinician workplace: " + fromClinician.getWorkplaceType(),
+                    "Not Allowed",
+                    JOptionPane.WARNING_MESSAGE
+            );
+            return;
+        }
+
+        // Targets: only Hospital clinicians
+        ArrayList<Clinician> hospitalClinicians = controller.getCliniciansByWorkplaceType("Hospital");
+        if (hospitalClinicians.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "No hospital clinicians available to refer to.");
+            return;
+        }
+
+        // Patients list
+        ArrayList<Patient> patients = controller.getAllPatients();
+        if (patients.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "No patients loaded. Load patients first.");
+            return;
+        }
+
+        // Build dropdowns with readable labels
+        JComboBox<String> patientBox = new JComboBox<>();
+        for (Patient p : patients) {
+            patientBox.addItem(p.getPatientID() + " - " + p.getFirstName() + " " + p.getLastName());
+        }
+
+        JComboBox<String> toClinicianBox = new JComboBox<>();
+        for (Clinician c : hospitalClinicians) {
+            toClinicianBox.addItem(
+                    c.getClinicianID() + " - " + c.getTitle() + " " + c.getFirstName() + " " + c.getLastName()
+                            + " (" + c.getWorkplaceID() + ")"
+            );
+        }
+
+        JComboBox<String> urgencyBox = new JComboBox<>(new String[]{"Routine", "Urgent", "Non-Urgent"});
+        JTextField referralDateField = new JTextField(LocalDate.now().toString()); // yyyy-MM-dd
+
+        JTextField reasonField = new JTextField();
+        JTextArea summaryArea = new JTextArea(4, 20);
+        JTextArea investigationsArea = new JTextArea(3, 20);
+        JTextArea notesArea = new JTextArea(3, 20);
+
+        summaryArea.setLineWrap(true);
+        summaryArea.setWrapStyleWord(true);
+        investigationsArea.setLineWrap(true);
+        investigationsArea.setWrapStyleWord(true);
+        notesArea.setLineWrap(true);
+        notesArea.setWrapStyleWord(true);
+
+        JPanel form = new JPanel(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(4, 4, 4, 4);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.gridx = 0; gbc.gridy = 0;
+
+        form.add(new JLabel("Referring Clinician:"), gbc);
+        gbc.gridx = 1;
+        form.add(new JLabel(fromClinicianID + " (" + fromClinician.getWorkplaceID() + ")"), gbc);
+
+        gbc.gridx = 0; gbc.gridy++;
+        form.add(new JLabel("Patient:"), gbc);
+        gbc.gridx = 1;
+        form.add(patientBox, gbc);
+
+        gbc.gridx = 0; gbc.gridy++;
+        form.add(new JLabel("Referred To (Hospital Clinician):"), gbc);
+        gbc.gridx = 1;
+        form.add(toClinicianBox, gbc);
+
+        gbc.gridx = 0; gbc.gridy++;
+        form.add(new JLabel("Referral Date (YYYY-MM-DD):"), gbc);
+        gbc.gridx = 1;
+        form.add(referralDateField, gbc);
+
+        gbc.gridx = 0; gbc.gridy++;
+        form.add(new JLabel("Urgency Level:"), gbc);
+        gbc.gridx = 1;
+        form.add(urgencyBox, gbc);
+
+        gbc.gridx = 0; gbc.gridy++;
+        form.add(new JLabel("Referral Reason:"), gbc);
+        gbc.gridx = 1;
+        form.add(reasonField, gbc);
+
+        gbc.gridx = 0; gbc.gridy++;
+        gbc.anchor = GridBagConstraints.NORTHWEST;
+        form.add(new JLabel("Clinical Summary:"), gbc);
+        gbc.gridx = 1;
+        form.add(new JScrollPane(summaryArea), gbc);
+
+        gbc.gridx = 0; gbc.gridy++;
+        form.add(new JLabel("Requested Investigations:"), gbc);
+        gbc.gridx = 1;
+        form.add(new JScrollPane(investigationsArea), gbc);
+
+        gbc.gridx = 0; gbc.gridy++;
+        form.add(new JLabel("Notes:"), gbc);
+        gbc.gridx = 1;
+        form.add(new JScrollPane(notesArea), gbc);
+
+        int result = JOptionPane.showConfirmDialog(
+                this,
+                form,
+                "Create Referral",
+                JOptionPane.OK_CANCEL_OPTION,
+                JOptionPane.PLAIN_MESSAGE
+        );
+
+        if (result != JOptionPane.OK_OPTION) return;
+
+        // Extract selected patientID from label "P001 - Name"
+        String patientLabel = (String) patientBox.getSelectedItem();
+        String patientID = patientLabel.split(" - ")[0].trim();
+
+        // Extract toClinicianID from label "C005 - ..."
+        String toClinicianLabel = (String) toClinicianBox.getSelectedItem();
+        String toClinicianID = toClinicianLabel.split(" - ")[0].trim();
+
+        // Find the selected hospital clinician object (to get toFacilityID)
+        Clinician toClinician = null;
+        for (Clinician c : hospitalClinicians) {
+            if (c.getClinicianID().equals(toClinicianID)) {
+                toClinician = c;
+                break;
+            }
+        }
+        if (toClinician == null) {
+            JOptionPane.showMessageDialog(this, "Could not resolve selected hospital clinician.");
+            return;
+        }
+
+        // From / To facilities
+        String fromFacilityID = fromClinician.getWorkplaceID();
+        String toFacilityID = toClinician.getWorkplaceID();
+
+        // Parse date (ISO)
+        LocalDate referralDate;
+        try {
+            referralDate = LocalDate.parse(referralDateField.getText().trim());
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "Referral date must be in YYYY-MM-DD format.");
+            return;
+        }
+
+        try {
+            Referral created = controller.createReferral(
+                    patientID,
+                    fromClinicianID,
+                    toClinicianID,
+                    fromFacilityID,
+                    toFacilityID,
+                    referralDate,
+                    (String) urgencyBox.getSelectedItem(),
+                    reasonField.getText(),
+                    summaryArea.getText(),
+                    investigationsArea.getText(),
+                    notesArea.getText()
+            );
+
+            statusLabel.setText("Created referral " + created.getReferralID() + " (text file generated).");
+            JOptionPane.showMessageDialog(this,
+                    "Referral created: " + created.getReferralID() + "\nA referral text file has been generated.",
+                    "Success",
+                    JOptionPane.INFORMATION_MESSAGE);
+
+        } catch (Exception ex) {
+            statusLabel.setText("Error: " + ex.getMessage());
+            JOptionPane.showMessageDialog(this, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
     }
+
+    private JPanel buildReferralsTab() {
+        JPanel panel = new JPanel(new BorderLayout(8, 8));
+
+        String[] cols = {
+                "Referral ID", "Patient ID",
+                "From Clinician", "To Clinician",
+                "From Facility", "To Facility",
+                "Referral Date", "Urgency",
+                "Reason", "Clinical Summary",
+                "Investigations", "Status",
+                "Appointment ID", "Notes",
+                "Created", "Last Updated"
+        };
+
+        referralsTableModel = new DefaultTableModel(cols, 0) {
+            @Override
+            public boolean isCellEditable(int row, int col) { return false; }
+        };
+
+        referralsTable = new JTable(referralsTableModel);
+        referralsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+
+        panel.add(new JScrollPane(referralsTable), BorderLayout.CENTER);
+
+        JPanel bottom = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 10));
+        JButton removeBtn = new JButton("Remove Referral");
+        JButton modifyStatusBtn = new JButton("Modify Status");
+
+        bottom.add(removeBtn);
+        bottom.add(modifyStatusBtn);
+
+        panel.add(bottom, BorderLayout.SOUTH);
+
+        removeBtn.addActionListener(e -> handleRemoveReferral());
+        modifyStatusBtn.addActionListener(e -> handleModifyReferralStatus());
+
+        refreshReferralsTable();
+
+        return panel;
+    }
+
+    private void refreshReferralsTable() {
+        controller.reloadReferrals();
+        referralsTableModel.setRowCount(0);
+
+        for (Referral r : controller.getAllReferrals()) {
+            referralsTableModel.addRow(referralRow(r));
+        }
+
+        statusLabel.setText("Loaded referrals: " + controller.getAllReferrals().size());
+    }
+
+    private Object[] referralRow(Referral r) {
+        return new Object[]{
+                r.getReferralID(),
+                r.getPatientID(),
+                r.getFromClinician(),
+                r.getToClinician(),
+                r.getFromFacility(),
+                r.getToFacility(),
+                r.getReferralDate(),
+                r.getUrgencyLevel(),
+                r.getReasonForReferral(),
+                r.getClinicalSummary(),
+                r.getRequestedInvestigations(),
+                r.getReferralStatus(),       // will display enum’s toString()
+                r.getAppointmentID(),
+                r.getReferralNotes(),
+                r.getReferralCreated(),
+                r.getReferralLastUpdated()
+        };
+    }
+
+
+    private void handleRemoveReferral() {
+        int row = referralsTable.getSelectedRow();
+        if (row == -1) {
+            JOptionPane.showMessageDialog(this, "Select a referral first.");
+            return;
+        }
+
+        String referralID = referralsTableModel.getValueAt(row, 0).toString();
+
+        int confirm = JOptionPane.showConfirmDialog(
+                this,
+                "Delete referral " + referralID + "?\n(This will remove it from referrals.csv)",
+                "Confirm Delete",
+                JOptionPane.YES_NO_OPTION
+        );
+
+        if (confirm != JOptionPane.YES_OPTION) return;
+
+        try {
+            controller.deleteReferral(referralID);
+            statusLabel.setText("Deleted referral: " + referralID);
+            refreshReferralsTable();
+        } catch (Exception ex) {
+            statusLabel.setText("Error: " + ex.getMessage());
+            JOptionPane.showMessageDialog(this, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void handleModifyReferralStatus() {
+        int row = referralsTable.getSelectedRow();
+        if (row == -1) {
+            JOptionPane.showMessageDialog(this, "Select a referral first.");
+            return;
+        }
+
+        String referralID = referralsTableModel.getValueAt(row, 0).toString();
+
+        JComboBox<ReferralStatus> statusBox = new JComboBox<>(ReferralStatus.values());
+
+        int result = JOptionPane.showConfirmDialog(
+                this,
+                statusBox,
+                "Set status for " + referralID,
+                JOptionPane.OK_CANCEL_OPTION,
+                JOptionPane.PLAIN_MESSAGE
+        );
+
+        if (result != JOptionPane.OK_OPTION) return;
+
+        ReferralStatus newStatus = (ReferralStatus) statusBox.getSelectedItem();
+
+        try {
+            controller.updateReferralStatus(referralID, newStatus);
+            statusLabel.setText("Updated referral " + referralID + " to " + newStatus);
+            refreshReferralsTable();
+        } catch (Exception ex) {
+            statusLabel.setText("Error: " + ex.getMessage());
+            JOptionPane.showMessageDialog(this, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
 
 
 }

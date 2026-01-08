@@ -113,4 +113,29 @@ public class ReferralManager {
 
         return r;
     }
+
+    public void deleteReferral(String referralID) {
+        for (int i = 0; i < referrals.size(); i++) {
+            if (referrals.get(i).getReferralID().equals(referralID)) {
+                referrals.remove(i);
+                saveAll();
+                return;
+            }
+        }
+        throw new IllegalArgumentException("No referral found with ID: " + referralID);
+    }
+
+    public void updateReferralStatus(String referralID, ReferralStatus newStatus) {
+        for (Referral r : referrals) {
+            if (r.getReferralID().equals(referralID)) {
+                r.setReferralStatus(newStatus);
+                r.setReferralLastUpdated(LocalDate.now());
+                saveAll();
+                // optional: regenerate the text file to reflect the updated status
+                ReferralTextWriter.writeReferralEmail(r);
+                return;
+            }
+        }
+        throw new IllegalArgumentException("No referral found with ID: " + referralID);
+    }
 }

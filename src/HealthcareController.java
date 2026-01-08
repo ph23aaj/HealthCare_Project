@@ -164,6 +164,70 @@ public class HealthcareController {
         );
     }
 
+//-------------------------------- Referrals -------------------------------------
+
+    public ArrayList<Clinician> getCliniciansByWorkplaceType(String workplaceType) {
+        ArrayList<Clinician> result = new ArrayList<>();
+        for (Clinician c : model.getClinicianManager().getAllClinicians()) {
+            if (c.getWorkplaceType() != null && c.getWorkplaceType().equalsIgnoreCase(workplaceType)) {
+                result.add(c);
+            }
+        }
+        return result;
+    }
+
+    /** Creates a referral via the Singleton ReferralManager. */
+    public Referral createReferral(
+            String patientID,
+            String fromClinicianID,
+            String toClinicianID,
+            String fromFacilityID,
+            String toFacilityID,
+            java.time.LocalDate referralDate,
+            String urgencyLevel,
+            String referralReason,
+            String clinicalSummary,
+            String requestedInvestigations,
+            String notes
+    ) {
+        ReferralManager rm = ReferralManager.getInstance();
+        rm.setFilename("referrals.csv"); // change if you store in /data
+        rm.load();
+        return rm.createReferral(
+                patientID,
+                fromClinicianID,
+                toClinicianID,
+                fromFacilityID,
+                toFacilityID,
+                referralDate,
+                urgencyLevel,
+                referralReason,
+                clinicalSummary,
+                requestedInvestigations,
+                notes
+        );
+    }
+
+    public void reloadReferrals() {
+        ReferralManager rm = ReferralManager.getInstance();
+        rm.setFilename("referrals.csv");
+        rm.load();
+    }
+
+    public ArrayList<Referral> getAllReferrals() {
+        ReferralManager rm = ReferralManager.getInstance();
+        return rm.getAllReferrals();
+    }
+
+    public void deleteReferral(String referralID) {
+        ReferralManager rm = ReferralManager.getInstance();
+        rm.deleteReferral(referralID);
+    }
+
+    public void updateReferralStatus(String referralID, ReferralStatus status) {
+        ReferralManager rm = ReferralManager.getInstance();
+        rm.updateReferralStatus(referralID, status);
+    }
 
 
 
